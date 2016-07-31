@@ -8,16 +8,37 @@ require 'rubygems'
 require 'colored'
 
 module Inprovise
-  def verbosity(val=nil)
-    @verbose = val unless val.nil?
-    @verbose || 0
-  end
-  module_function :verbose
 
-  def root
-    File.dirname(ENV['INPROVISE_RC'])
-  end
-  module_function :root
+  INFRA_FILE = 'infra.json'
 
+  class << self
+    def verbosity(val=nil)
+      @verbose = val unless val.nil?
+      @verbose || 0
+    end
+
+    def infra
+      @infra ||= (ENV['INPROVISE_INFRA'] || find_infra)
+    end
+
+    def root
+      @root ||= File.dirname(infra)
+    end
+
+    private
+
+    def find_infra
+      curpath = File.expand_path('.')
+      begin
+        # check if this is where the infra file lives
+        if File.file?(File.join(curpath, Inprovise::INFRA_FILE))
+          return File.join(curpath, Inprovise::INFRA_FILE)
+        end
+        # not found yet, move one dir up until we reach the root
+        curpath = File.expand_path(File.join(curpath, '..'))
+      end while !(curpath =~ /^(#{File::SEPARATOR}|.:#{File::SEPARATOR})$/)
+      ''
+    end
+  end
 
 end
