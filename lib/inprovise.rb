@@ -9,12 +9,16 @@ require 'colored'
 
 module Inprovise
 
+  VERSION = '0.1.1'
   INFRA_FILE = 'infra.json'
 
   class << self
-    def verbosity(val=nil)
-      @verbose = val unless val.nil?
-      @verbose || 0
+    def verbosity
+      @verbose ||= 0
+    end
+
+    def verbosity=(val)
+      @verbose = val.to_i
     end
 
     def infra
@@ -42,3 +46,6 @@ module Inprovise
   end
 
 end
+
+require_relative './inprovise/logger.rb'
+require_relative './inprovise/cli.rb'
