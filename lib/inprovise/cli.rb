@@ -1,4 +1,4 @@
-# CLI for inprovise
+# CLI for Inprovise
 #
 # Author::    Martin Corino
 # Copyright:: Copyright (c) 2016 Martin Corino

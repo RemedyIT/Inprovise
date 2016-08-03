@@ -1,4 +1,4 @@
-# Main loader for inprovise
+# Main loader for Inprovise
 #
 # Author::    Martin Corino
 # Copyright:: Copyright (c) 2016 Martin Corino
@@ -41,7 +41,7 @@ module Inprovise
         # not found yet, move one dir up until we reach the root
         curpath = File.expand_path(File.join(curpath, '..'))
       end while !(curpath =~ /^(#{File::SEPARATOR}|.:#{File::SEPARATOR})$/)
-      ''
+      INFRA_FILE
     end
   end
 
@@ -49,3 +49,4 @@ end
 
 require_relative './inprovise/logger.rb'
 require_relative './inprovise/cli.rb'
+require_relative './inprovise/infra.rb'

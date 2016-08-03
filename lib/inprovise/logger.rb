@@ -1,4 +1,4 @@
-# Logger for inprovise
+# Logger for Inprovise
 #
 # Author::    Martin Corino
 # Copyright:: Copyright (c) 2016 Martin Corino
@@ -51,11 +51,11 @@ class Inprovise::Logger
   end
 
   def stdout(msg, force=false)
-    say(msg, :green) if force || Inprovise.verbose
+    say(msg, :green) if force || Inprovise.verbosity>0
   end
 
   def stderr(msg, force=false)
-    say(msg, :red) if force || Inprovise.verbose
+    say(msg, :red) if force || Inprovise.verbosity>0
   end
 
   def say(msg, color=nil)
