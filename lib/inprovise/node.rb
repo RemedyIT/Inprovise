@@ -11,13 +11,13 @@ require 'json'
 class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   attr_reader :host, :user
 
-  def initialize(name, options={})
-    @host = options[:host] || name
-    @user = options[:user] || 'root'
+  def initialize(name, config={})
+    @host = config[:host] || name
+    @user = config[:user] || 'root'
     @connection = nil
     @history = []
     @user_nodes = {}
-    super(name, options)
+    super(name, config)
   end
 
   def method_missing(meth, *args)
@@ -113,21 +113,21 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
       JSON.create_id  => self.class.name,
       'data' => {
         'name' => name,
-        'options' => options
+        'config' => config
       }
     }.to_json(*a)
   end
 
   def self.json_create(o)
     data = o['data']
-    new(data['name'], data['options'])
+    new(data['name'], data['config'])
   end
 
   private
 
   def options_for_ssh
     opts = [:auth_methods, :compression, :compression_level, :config, :encryption , :forward_agent , :global_known_hosts_file , :hmac , :host_key , :host_key_alias , :host_name, :kex , :keys , :key_data , :keys_only , :logger , :paranoid , :passphrase , :password , :port , :properties , :proxy , :rekey_blocks_limit , :rekey_limit , :rekey_packet_limit , :timeout , :user , :user_known_hosts_file , :verbose ]
-    options.reduce({}) do |hsh, (k,v)|
+    config.reduce({}) do |hsh, (k,v)|
       hsh[k] = v if opts.include?(k)
       hsh
     end
@@ -140,13 +140,13 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
 
   def really_execute(cmd, opts={})
     cmd = prefixed_command(cmd)
-    log.execute(cmd.cyan)
+    log.execute(cmd.cyan) if Inprovise.verbosity > 0
     output = ""
     connection.exec! cmd do |channel, stream, data|
       output += data if stream == :stdout
       data.split("\n").each do |line|
         log.send(stream, line, opts[:log])
-      end
+      end if Inprovise.verbosity > 1 || opts[:log]
     end
     @history << {cmd:cmd, output:output}
     output
@@ -164,7 +164,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def prefixed_command(cmd)
-    return cmd unless options[:prefix]
-    options[:prefix] + cmd
+    return cmd unless config[:prefix]
+    config[:prefix] + cmd
   end
 end

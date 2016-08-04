@@ -38,20 +38,20 @@ module Inprovise::Infrastructure
   end
 
   class Target
-    attr_reader :name, :options
+    attr_reader :name, :config
 
-    def initialize(name, options = {})
+    def initialize(name, config = {})
       @name = name
-      @options = options
+      @config = config
       Inprovise::Infrastructure.register(self)
     end
 
     def get(option)
-      options[option]
+      config[option]
     end
 
     def set(option, value)
-      options[option.to_sym] = value
+      config[option.to_sym] = value
     end
 
     def add_to(grp)

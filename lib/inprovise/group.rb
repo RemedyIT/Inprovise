@@ -8,9 +8,9 @@ require 'json'
 
 class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
 
-  def initialize(name, options={}, targets=[])
+  def initialize(name, config={}, targets=[])
     @targets = targets.collect {|t| Inprovise::Infrastructure::Target === t ? t.name : t.to_s }
-    super(name, options)
+    super(name, config)
   end
 
   def add_target(tgt)
@@ -34,7 +34,7 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
       JSON.create_id  => self.class.name,
       'data' => {
         'name' => name,
-        'options' => options,
+        'config' => config,
         'targets' => @targets
       }
     }.to_json(*a)
@@ -42,6 +42,6 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
 
   def self.json_create(o)
     data = o['data']
-    new(data['name'], data['options'], data['targets'])
+    new(data['name'], data['config'], data['targets'])
   end
 end

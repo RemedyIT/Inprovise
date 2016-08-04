@@ -48,5 +48,9 @@ module Inprovise
 end
 
 require_relative './inprovise/logger.rb'
-require_relative './inprovise/cli.rb'
+require_relative './inprovise/local_file.rb'
+require_relative './inprovise/remote_file.rb'
+require_relative './inprovise/execution_context.rb'
 require_relative './inprovise/infra.rb'
+require_relative './inprovise/sniff.rb'
+require_relative './inprovise/cli.rb'
