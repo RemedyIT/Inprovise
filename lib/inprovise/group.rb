@@ -22,7 +22,7 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
   end
 
   def targets
-    @targets.collect {|t| Inprovise::Infrastructure.find(t) }
+    @targets.collect {|t| Inprovise::Infrastructure.find(t).targets }.flatten
   end
 
   def to_s

@@ -23,48 +23,61 @@ class Inprovise::Cli
   desc 'Don\'t actually run any commands on the group, just pretend.'
   switch [:n,:'dry-run'], {negatable: false}
 
-  desc 'Path to a provisioning scheme to load, if none specified loads ./inprovise.rb.'
+  #desc 'Path to a provisioning scheme to load, if none specified loads ./inprovise.rb.'
   #default_value 'the default'
-  arg_name 'FILE'
-  flag [:s,:scheme]
+  #arg_name 'FILE'
+  #flag [:s,:scheme]
 
   desc 'Increase verbosity, useful for debugging.'
-  switch [:v, :verbose], {negatable: false}
+  flag [:v, :verbose], :arg_name => 'LEVEL', :default_value => 0, :type => Integer
+
+  desc 'Don\'t run tasks in parrallel across nodes.'
+  switch [:sequential], {negatable: false}
 
   # class_option :throw,       :type => :boolean, :desc => "Don't pretty print errors, raise with a stack trace."
-  # class_option :sequential,  :type => :boolean, :desc => "Don't run tasks in parrallel across nodes."
   # class_option :'skip-dependancies', :type => :boolean, :desc => "Don't validate and run dependencies."
 
-  desc 'Manage the infrastructure'
-  command :infra do |c|
+  desc 'Manage infrastructure nodes'
+  command :node do |cnod|
 
-    c.desc 'Manage infrastructure nodes'
-    c.command :node do |cnod|
+    cnod.desc 'Add an infrastructure node'
+    cnod.arg_name 'NODE'
+    cnod.command :add do |cnod_add|
 
-      cnod.desc 'Add an infrastructure node'
-      cnod.command :add do |cnod_add|
+      cnod_add.flag [:a, :address], :arg_name => 'ADDRESS', :desc => 'Set the node address (hostname or IP). If not set node name is used as hostname.'
+      cnod_add.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the node.'
 
-      end
-
-      cnod.desc 'Remove an infrastructure node'
-      cnod.command :remove do |cnod_del|
-
-      end
-
-      c.default_desc 'List infrastructure nodes'
-      c.action do |global_options,options,args|
-
+      cnod_add.action do |global,options,args|
+        raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
+        ctl = Inprovise::Controller.new(global)
+        ctl.run(:add, options, :node, *args)
       end
 
     end
 
-    c.desc 'Manage infrastructure groups'
-    c.command :group do |cgrp|
+    cnod.desc 'Remove an infrastructure node'
+    cnod.arg_name 'NODE'
+    cnod.command :remove do |cnod_del|
 
     end
 
+    cnod.default_desc 'List infrastructure nodes'
+    cnod.action do |global_options,options,args|
+
+    end
 
   end
+
+  desc 'Manage infrastructure groups'
+  command :group do |cgrp|
+
+  end
+
+  desc 'Update infrastructure nodes and/or groups.'
+  command :update do |cupdate|
+
+  end
+
 
   pre do |global,command,options,args|
     # Pre logic here
@@ -72,6 +85,8 @@ class Inprovise::Cli
     # chosen command
     # Use skips_pre before a command to skip this block
     # on that command only
+    Inprovise.verbosity = global[:verbose] || 0
+    Inprovise::Infrastructure.load
     true
   end
 

@@ -26,6 +26,11 @@ module Inprovise::Infrastructure
       targets[tgt.name] = tgt
     end
 
+    def deregister(tgt)
+      targets.delete(Inprovise::Infrastructure::Target === tgt ? tgt.name : tgt.to_s)
+      targets.each {|t| t.remove_target(tgt) }
+    end
+
     def save
       data = []
       targets.each_value {|t| t.is_a?(Node) ? data.insert(0,t) : data.push(t) }
@@ -67,7 +72,11 @@ module Inprovise::Infrastructure
     end
 
     def remove_target(tgt)
-      $stderr.puts "ERROR: cannot remove #{tgt.to_s} from #{self.to_s}"
+      # ignore
+    end
+
+    def targets
+      [self]
     end
   end
 
