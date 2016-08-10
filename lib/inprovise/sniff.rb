@@ -43,6 +43,7 @@ module Inprovise::Sniffer
         end
 
         def self.sniff_for(context)
+          context.log.set_task("Sniff{#{sniffer_id}}")
           new(context).run
         end
 
