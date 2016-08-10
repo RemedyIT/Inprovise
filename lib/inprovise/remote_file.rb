@@ -29,7 +29,7 @@ class Inprovise::RemoteFile
     @exists = result.strip == 'true'
   end
 
-  def cat
+  def content
     @context.run("cat #{path}")
   end
 

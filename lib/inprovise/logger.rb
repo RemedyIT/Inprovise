@@ -7,9 +7,9 @@
 class Inprovise::Logger
   attr_accessor :node
 
-  def initialize(node, package)
+  def initialize(node, task)
     @node = node
-    set_package(package)
+    set_task(task)
   end
 
   def clone_for_node(node)
@@ -18,8 +18,8 @@ class Inprovise::Logger
     copy
   end
 
-  def set_package(package)
-    @package = package.to_s
+  def set_task(task)
+    @task = task.to_s
   end
 
   def command(msg)
@@ -61,7 +61,7 @@ class Inprovise::Logger
   def say(msg, color=nil)
     msg.to_s.split("\n").each do |line|
       out = color ? line.send(color) : line
-      Thread.exclusive { puts "#{@node.to_s} [#{@package.bold}] #{out}" }
+      Thread.exclusive { puts "#{@node.to_s} [#{@task.bold}] #{out}" }
     end
   end
 end

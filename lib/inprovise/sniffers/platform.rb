@@ -31,15 +31,14 @@ class Inprovise::Sniffer::PlatformSniffer
     end
     attrs['pkgman'] = case attrs['os']
                       when 'fedora', 'centos', 'rhel'
-                        chk = context.run('which dnf').strip
-                        chk.empty? ? 'yum' : 'dnf'
+                        context.binary_exists?('dnf') ? 'dnf' : 'yum'
                       when /suse/
                         'zypper'
                       end
   end
 
   def get_os_release(attrs)
-    data = context.remote('/etc/os-release').cat.split("\n").collect {|l| l.strip }
+    data = context.remote('/etc/os-release').content.split("\n").collect {|l| l.strip }
     vars = data.inject({}) do |hash, line|
       unless line.empty? || line.start_with?('#') || !(line =~ /[^=]+=.*/)
         var, val = line.split('=')
@@ -50,7 +49,7 @@ class Inprovise::Sniffer::PlatformSniffer
     attrs['os'] = vars['ID'].downcase
     attrs['os-version'] = vars['VERSION_ID']
     if attrs['os'] == 'centos' && context.remote('/etc/centos-release').exists?
-      data = context.remote('/etc/centos-release').cat.split("\n").collect {|l| l.strip }
+      data = context.remote('/etc/centos-release').content.split("\n").collect {|l| l.strip }
       data.each do |line|
         if line =~ /\s+release\s+(\d+)\.(\d+).*/
           attrs['os-version'] = "#{$1}.#{$2}"
@@ -60,7 +59,7 @@ class Inprovise::Sniffer::PlatformSniffer
   end
 
   def get_redhat_release(attrs)
-    data = context.remote('/etc/redhat-release').cat.split("\n").collect {|l| l.strip }
+    data = context.remote('/etc/redhat-release').content.split("\n").collect {|l| l.strip }
     data.each do |line|
       if line =~ /\A(.+)\s+release\s+(\d+)(\.(\d+))?/
         attrs['os-version'] = "#{$2}.#{$4 || '0'}"
@@ -78,7 +77,7 @@ class Inprovise::Sniffer::PlatformSniffer
   end
 
   def get_suse_release(attrs)
-    data = context.remote('/etc/SuSE-release').cat.split("\n").collect {|l| l.strip }
+    data = context.remote('/etc/SuSE-release').content.split("\n").collect {|l| l.strip }
     attrs['os'] = data.shift.split(' ').first.downcase
     data.each do |l|
       if data =~ /\AVERSION\s*=\s*(.*)/i

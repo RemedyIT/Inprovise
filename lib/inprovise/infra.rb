@@ -40,6 +40,7 @@ module Inprovise::Infrastructure
 
     def register(tgt)
       targets.synchronize do
+        raise ArgumentError, "Existing [#{targets[tgt.name].to_s}] found" if targets.has_key?(tgt.name)
         targets[tgt.name] = tgt
       end
     end
@@ -97,6 +98,10 @@ module Inprovise::Infrastructure
 
     def remove_target(tgt)
       # ignore
+    end
+
+    def includes?(tgt)
+      false
     end
 
     def targets

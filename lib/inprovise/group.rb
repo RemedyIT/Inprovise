@@ -14,6 +14,8 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
   end
 
   def add_target(tgt)
+    tgt = Inprovise::Infrastructure::Target === tgt ? tgt : Inprovise::Infrastructure.find(tgt.to_s)
+    raise ArgumentError, "Circular reference detected in [#{tgt.to_s}] to [#{self.to_s}]" if tgt.includes?(self)
     @targets << (Inprovise::Infrastructure::Target === tgt ? tgt.name : tgt.to_s)
   end
 
@@ -22,7 +24,12 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
   end
 
   def targets
-    @targets.collect {|t| Inprovise::Infrastructure.find(t).targets }.flatten
+    @targets.collect {|t| Inprovise::Infrastructure.find(t).targets }.flatten.uniq
+  end
+
+  def includes?(tgt)
+    tgtname = Inprovise::Infrastructure::Target === tgt ? tgt.name : tgt.to_s
+    @targets.include?(tgtname) || @targets.any? {|t| Inprovise::Infrastructure.find(t).includes?(tgtname) }
   end
 
   def to_s
