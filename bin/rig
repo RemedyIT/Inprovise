@@ -2,4 +2,4 @@
 
 require_relative '../lib/inprovise'
 
-Inprovise::Cli.run(ARGV)
+exit Inprovise::Cli.run(ARGV)

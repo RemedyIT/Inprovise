@@ -32,16 +32,16 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
   def to_json(*a)
     {
       JSON.create_id  => self.class.name,
-      'data' => {
-        'name' => name,
-        'config' => config,
-        'targets' => @targets
+      :data => {
+        :name => name,
+        :config => config,
+        :targets => @targets
       }
     }.to_json(*a)
   end
 
   def self.json_create(o)
-    data = o['data']
-    new(data['name'], data['config'], data['targets'])
+    data = o[:data]
+    new(data[:name], data[:config], data[:targets])
   end
 end

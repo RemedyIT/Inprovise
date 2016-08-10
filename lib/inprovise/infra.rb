@@ -5,40 +5,64 @@
 # License::   Distributes under the same license as Ruby
 
 require 'json'
+require 'monitor'
 
 module Inprovise::Infrastructure
 
+  # setup JSON parameters
+  JSON.load_default_options[:symbolize_names] = true
+  JSON.create_id = :json_class
+
   class << self
     def targets
-      @targets ||= {}
+      @targets ||= Hash.new.extend(MonitorMixin)
     end
+    private :targets
 
     def find(name)
       return name if name.is_a?(Target)
-      targets[name]
+      targets.synchronize do
+        return targets[name]
+      end
     end
 
     def names
-      targets.keys.sort
+      targets.synchronize do
+        targets.keys.sort
+      end
+    end
+
+    def list(type=Target)
+      targets.synchronize do
+        targets.values.select {|t| type === t}
+      end
     end
 
     def register(tgt)
-      targets[tgt.name] = tgt
+      targets.synchronize do
+        targets[tgt.name] = tgt
+      end
     end
 
     def deregister(tgt)
-      targets.delete(Inprovise::Infrastructure::Target === tgt ? tgt.name : tgt.to_s)
-      targets.each {|t| t.remove_target(tgt) }
+      targets.synchronize do
+        raise ArgumentError, "Invalid infrastructure target [#{tgt.to_s}]" unless targets.delete(Target === tgt ? tgt.name : tgt.to_s)
+        targets.each_value {|t| t.remove_target(tgt) }
+      end
     end
 
     def save
-      data = []
-      targets.each_value {|t| t.is_a?(Node) ? data.insert(0,t) : data.push(t) }
-      File.open(Inprovise.infra, 'w') {|f| f << JSON.pretty_generate(data) }
+      targets.synchronize do
+        data = []
+        targets.each_value {|t| t.is_a?(Node) ? data.insert(0,t) : data.push(t) }
+        File.open(Inprovise.infra, 'w') {|f| f << JSON.pretty_generate(data) }
+      end
     end
 
     def load
-      JSON.load(IO.read(Inprovise.infra)) if File.readable?(Inprovise.infra)
+      targets.synchronize do
+        JSON.load(IO.read(Inprovise.infra)) if File.readable?(Inprovise.infra)
+      end
     end
   end
 

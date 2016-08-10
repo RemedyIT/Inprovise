@@ -108,19 +108,27 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     "Node:#{name}(#{user}@#{host})"
   end
 
+  def safe_config
+    scfg = config.dup
+    scfg.delete :passphrase
+    scfg.delete :password
+    scfg
+  end
+  protected :safe_config
+
   def to_json(*a)
     {
       JSON.create_id  => self.class.name,
-      'data' => {
-        'name' => name,
-        'config' => config
+      :data => {
+        :name => name,
+        :config => safe_config
       }
     }.to_json(*a)
   end
 
   def self.json_create(o)
-    data = o['data']
-    new(data['name'], data['config'])
+    data = o[:data]
+    new(data[:name], data[:config])
   end
 
   private
@@ -139,17 +147,21 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def really_execute(cmd, opts={})
-    cmd = prefixed_command(cmd)
-    log.execute(cmd.cyan) if Inprovise.verbosity > 0
-    output = ""
-    connection.exec! cmd do |channel, stream, data|
-      output += data if stream == :stdout
-      data.split("\n").each do |line|
-        log.send(stream, line, opts[:log])
-      end if Inprovise.verbosity > 1 || opts[:log]
+    begin
+      cmd = prefixed_command(cmd)
+      log.execute(cmd.cyan) if Inprovise.verbosity > 0
+      output = ""
+      connection.exec! cmd do |channel, stream, data|
+        output += data if stream == :stdout
+        data.split("\n").each do |line|
+          log.send(stream, line, opts[:log])
+        end if Inprovise.verbosity > 1 || opts[:log]
+      end
+      @history << {cmd:cmd, output:output}
+      output
+    rescue Exception
+      raise RuntimeError, "Failed to communicate with [#{self.to_s}]"
     end
-    @history << {cmd:cmd, output:output}
-    output
   end
 
   def should_execute?(cmd, opts)

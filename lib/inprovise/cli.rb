@@ -46,6 +46,8 @@ class Inprovise::Cli
 
       cnod_add.flag [:a, :address], :arg_name => 'ADDRESS', :desc => 'Set the node address (hostname or IP). If not set node name is used as hostname.'
       cnod_add.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the node.'
+      cnod_add.flag [:g, :group], :arg_name => 'GROUP', :multiple => true, :desc => 'Existing infrastructure group to add new node to.'
+      cnod_add.flag [:k, :'public-key'], :arg_name => 'KEY', :desc => 'Public key to install for future authentication.'
 
       cnod_add.action do |global,options,args|
         raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
@@ -55,21 +57,63 @@ class Inprovise::Cli
 
     end
 
-    cnod.desc 'Remove an infrastructure node'
-    cnod.arg_name 'NODE'
+    cnod.desc 'Remove (an) infrastructure node(s)'
+    cnod.arg_name 'NODE[ NODE [...]]'
     cnod.command :remove do |cnod_del|
+
+      cnod_del.action do |global,options,args|
+        raise ArgumentError, 'Missing argument!' if args.empty?
+        ctl = Inprovise::Controller.new(global)
+        ctl.run(:remove, options, :node, *args)
+      end
 
     end
 
     cnod.default_desc 'List infrastructure nodes'
     cnod.action do |global_options,options,args|
-
+      $stderr.puts "\tINFRASTRUCTURE NODES"
+      $stderr.puts "\t===================="
+      $stdout.puts *Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).collect {|n| "\t#{n.to_s}" }
     end
 
   end
 
   desc 'Manage infrastructure groups'
   command :group do |cgrp|
+
+    cgrp.desc 'Add an infrastructure group'
+    cgrp.arg_name 'GROUP'
+    cgrp.command :add do |cgrp_add|
+
+      cgrp_add.flag [:t, :target], :arg_name => 'NAME', :multiple => true, :desc => 'Add a known target (node or group) to this new group.'
+      cgrp_add.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the group.'
+
+      cgrp_add.action do |global,options,args|
+        raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
+        ctl = Inprovise::Controller.new(global)
+        ctl.run(:add, options, :group, *args)
+      end
+
+    end
+
+    cgrp.desc 'Remove (an) infrastructure group(s)'
+    cgrp.arg_name 'GROUP[ GROUP [...]]'
+    cgrp.command :remove do |cgrp_del|
+
+      cgrp_del.action do |global,options,args|
+        raise ArgumentError, 'Missing argument!' if args.empty?
+        ctl = Inprovise::Controller.new(global)
+        ctl.run(:remove, options, :group, *args)
+      end
+
+    end
+
+    cgrp.default_desc 'List infrastructure groups'
+    cgrp.action do |global_options,options,args|
+      $stderr.puts "\tINFRASTRUCTURE GROUPS"
+      $stderr.puts "\t====================="
+      $stdout.puts *Inprovise::Infrastructure.list(Inprovise::Infrastructure::Group).collect {|n| "\t#{n.to_s}" }
+    end
 
   end
 
