@@ -55,13 +55,13 @@ class Inprovise::Logger
   end
 
   def stderr(msg, force=false)
-    say(msg, :red) if force || Inprovise.verbosity>0
+    say(msg, :red, $stderr) if force || Inprovise.verbosity>0
   end
 
-  def say(msg, color=nil)
+  def say(msg, color=nil, stream=$stdout)
     msg.to_s.split("\n").each do |line|
       out = color ? line.send(color) : line
-      Thread.exclusive { puts "#{@node.to_s} [#{@task.bold}] #{out}" }
+      Thread.exclusive { stream.puts "#{@node.to_s} [#{@task.bold}] #{out}" }
     end
   end
 end

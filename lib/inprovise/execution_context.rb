@@ -7,12 +7,13 @@
 require "open3"
 
 class Inprovise::ExecutionContext
-  attr_reader :node, :log
+  attr_reader :node, :log, :config
 
-  def initialize(node, log)
+  def initialize(node, log, config=nil)
     @node = node
     @log = log
     @node.log_to(@log)
+    @config = config || @node.config.dup
   end
 
   def apply(blk)
@@ -27,7 +28,7 @@ class Inprovise::ExecutionContext
     return self if user.nil? || user == node.user
     new_node = @node.for_user(user)
     new_log = @log.clone_for_node(new_node)
-    self.class.new(new_node, new_log)
+    self.class.new(new_node, new_log, @config)
   end
 
   def run_local(cmd)
@@ -84,7 +85,7 @@ class Inprovise::ExecutionContext
 
   def trigger(action_ref, *args)
     pkg_name, action_name = *action_ref.split(':', 2)
-    pkg = Inprovise::PackageIndex.default.get(pkg_name)
+    pkg = Inprovise::ScriptIndex.default.get(pkg_name)
     action = pkg.actions[action_name]
     raise Inprovise::MissingActionError.new(action_ref) unless action
     instance_exec(*args, &action)

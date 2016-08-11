@@ -29,9 +29,13 @@ module Inprovise
       @root ||= File.dirname(infra)
     end
 
+    def log
+      @log ||= Inprovise::Logger.new('Local', 'cli')
+    end
+
     def add_script(script)
       yield(script) if block_given?
-      Inprovise::PackageIndex.default.add(script)
+      Inprovise::ScriptIndex.default.add(script)
       script
     end
 
@@ -66,7 +70,8 @@ module Inprovise
     dsl_define do
       def include(path)
         path = File.expand_path(path, Inprovise.root)
-        Inprovise::DSL.module_eval(File.read(path))
+        Inprovise.log.local("Loading provisioning scheme #{path}") if Inprovise.verbosity > 0
+        Inprovise::DSL.module_eval(File.read(path), path)
       end
     end
 

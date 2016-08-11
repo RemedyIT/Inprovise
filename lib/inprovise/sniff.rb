@@ -18,7 +18,7 @@ module Inprovise::Sniffer
     end
 
     def run_sniffers_for(context)
-      sniffers.inject({}) {|attr, sniffer| attr[sniffer.id] = sniffer.sniff_for(context); attr }
+      sniffers.inject({}) {|attr, sniffer| attr[sniffer.id.to_sym] = sniffer.sniff_for(context); attr }
     end
 
   end

@@ -27,6 +27,20 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
     @targets.collect {|t| Inprovise::Infrastructure.find(t).targets }.flatten.uniq
   end
 
+  def targets_with_config
+    @targets.inject({}) do |hsh, t|
+      Inprovise::Infrastructure.find(t).targets_with_config.each do |tgt, cfg|
+        if hsh.has_key?(tgt)
+          hsh[tgt].merge!(cfg)
+        else
+          hsh[tgt] = cfg
+        end
+        hsh[tgt].merge!(config)
+      end
+      hsh
+    end
+  end
+
   def includes?(tgt)
     tgtname = Inprovise::Infrastructure::Target === tgt ? tgt.name : tgt.to_s
     @targets.include?(tgtname) || @targets.any? {|t| Inprovise::Infrastructure.find(t).includes?(tgtname) }

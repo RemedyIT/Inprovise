@@ -93,7 +93,7 @@ module Inprovise::Infrastructure
     end
 
     def add_target(tgt)
-      $stderr.puts "ERROR: cannot add #{tgt.to_s} to #{self.to_s}"
+      raise RuntimeError, "Cannot add #{tgt.to_s} to #{self.to_s}"
     end
 
     def remove_target(tgt)
@@ -106,6 +106,10 @@ module Inprovise::Infrastructure
 
     def targets
       [self]
+    end
+
+    def targets_with_config
+      {self => @config.dup}
     end
   end
 

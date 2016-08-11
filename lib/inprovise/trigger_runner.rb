@@ -11,12 +11,12 @@ class Inprovise::TriggerRunner
     @log = Inprovise::Logger.new(@node, @action_ref)
   end
 
-  def execute(_)
-    Inprovise::ExecutionContext.new(@node, @log).trigger(@action_ref, *@args)
+  def execute(_, config=nil)
+    Inprovise::ExecutionContext.new(@node, @log, config).trigger(@action_ref, *@args)
   end
 
-  def demonstrate(_)
-    Inprovise::MockExecutionContext.new(@node, @log).trigger(@action_ref, *@args)
+  def demonstrate(_, config=nil)
+    Inprovise::MockExecutionContext.new(@node, @log, config).trigger(@action_ref, *@args)
   end
 
   private

@@ -22,7 +22,7 @@ class Inprovise::ScriptIndex
 
   def get(scr_name)
     scr = @scripts[scr_name]
-    raise MissingPackageError.new(index_name, scr_name) if scr.nil?
+    raise MissingScriptError.new(index_name, scr_name) if scr.nil?
     scr
   end
 
@@ -30,7 +30,7 @@ class Inprovise::ScriptIndex
     @scripts = {}
   end
 
-  class MissingPackageError < StandardError
+  class MissingScriptError < StandardError
     def initialize(index_name, script_name)
       @index_name = index_name
       @script_name = script_name

@@ -20,60 +20,60 @@ class Inprovise::ScriptRunner
     resolver.scripts
   end
 
-  def execute(command_name)
+  def execute(command_name, config=nil)
     scrs = scripts
     scrs.reverse! if command_name.to_sym == :revert
-    @log.say pkgs.map(&:name).join(', ').yellow
+    @log.say scrs.map(&:name).join(', ').yellow
+    context = @perform ? Inprovise::ExecutionContext.new(@node, @log, config) : Inprovise::MockExecutionContext.new(@node, @log, config)
     scrs.each do |script|
-      send(:"execute_#{command_name}", script)
+      send(:"execute_#{command_name}", script, context)
     end
   end
 
-  def execute_apply(script)
-    return unless should_run?(script, :apply)
-    exec(script, :apply)
-    validate!(script)
+  def demonstrate(command_name, config=nil)
+    @perform = false
+    execute(command_name, config)
+    @perform = true
   end
 
-  def execute_revert(script)
-    return unless should_run?(script, :revert)
-    exec(script, :revert)
+  def execute_apply(script, context)
+    return unless should_run?(script, :apply, context)
+    exec(script, :apply, context)
+    validate!(script, context)
   end
 
-  def execute_validate(script)
-    validate!(script)
+  def execute_revert(script, context)
+    return unless should_run?(script, :revert, context)
+    exec(script, :revert, context)
   end
 
-  def should_run?(script, command_name)
+  def execute_validate(script, context)
+    validate!(script, context)
+  end
+
+  def should_run?(script, command_name, context)
     return false unless script.provides_command?(command_name)
     return true unless @perform
     return true unless command_name == :apply || command_name == :revert
     return true unless script.provides_command?(:validate)
-    is_present = is_valid?(script)
+    is_present = is_valid?(script, context)
     return !is_present if command_name == :apply
     is_present
   end
 
-  def validate!(script)
+  def validate!(script, context)
     return true unless @perform
     return unless script.provides_command?(:validate)
-    return if is_valid?(script)
+    return if is_valid?(script, context)
     raise ValidationFailureError.new(@node, script)
   end
 
-  def is_valid?(script)
-    results = exec(script, :validate)
+  def is_valid?(script, context)
+    results = exec(script, :validate, context)
     results.all?
   end
 
-  def demonstrate(command_name)
-    @perform = false
-    execute(command_name)
-    @perform = true
-  end
-
-  def exec(script, command_name)
-    context = @perform ? Inprovise::ExecutionContext.new(@node, @log) : Inprovise::MockExecutionContext.new(@node, @log)
+  def exec(script, command_name, context)
     cmds = script.command(command_name)
     context = context.for_user(script.user) if script.user
     context.log.set_task(script)

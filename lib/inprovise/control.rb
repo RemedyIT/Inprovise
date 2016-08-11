@@ -30,53 +30,70 @@ class Inprovise::Controller
     rescue Exception => e
       ex = e
     ensure
-      $stderr.print 'Disconnecting...'.green
       cleanup
-      $stderr.puts 'Done!'.green
       raise ex if ex
     end
   end
 
   def cleanup
+    return if @targets.empty?
+    Inprovise.log.local('Disconnecting...') if Inprovise.verbosity > 0
     @targets.each(&:disconnect)
+    Inprovise.log.local('Done!') if Inprovise.verbosity > 0
   end
 
   private
 
   def run_provisioning_command(command, options, *args)
     # load all specified schemes
-    options[:scheme].each {|s| Inprovise::DSL.include(s) }
-    # get command target and intended infrastructure targets
+    (Array === options[:scheme] ? options[:scheme] : [options[:scheme]]).each {|s| Inprovise::DSL.include(s) }
+    # get command target and intended infrastructure targets/config tuples
     cmdtgt = args.shift
-    targets = args.collect do |name|
+    targets = args.inject({}) do |hsh, name|
       tgt = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Unknown target [#{name}]" unless tgt
-      tgt.targets
-    end.flatten.uniq
-    # create runner for each target
-    runners = targets.map do |tgt|
-      @targets << tgt
-      if command == :trigger
-        Inprovise::TriggerRunner.new(tgt, cmdtgt)
-      else
-        script = Inprovise::ScriptIndex.default.get(cmdtgt)
-        Inprovise::ScriptRunner.new(tgt, script, @skip_dependencies)
+      tgt.targets_with_config.each do |tgt_, cfg|
+        if hsh.has_key?(tgt_)
+          hsh[tgt_].merge!(cfg)
+        else
+          hsh[tgt_] = cfg
+        end
       end
+      hsh
+    end
+    # create runner/config for each target/config
+    runners = targets.map do |tgt, cfg|
+      @targets << tgt
+      [
+        if command == :trigger
+          Inprovise::TriggerRunner.new(tgt, cmdtgt)
+        else
+          script = Inprovise::ScriptIndex.default.get(cmdtgt)
+          Inprovise::ScriptRunner.new(tgt, script, @skip_dependencies)
+        end,
+        cfg
+      ]
+    end
+    # extract options
+    opts = options[:config].inject({}) do |rc, cfg|
+      k,v = cfg.split('=')
+      rc.store(k.to_sym, get_value(v))
+      rc
     end
     # execute runners
     if @sequential
-      runners.each {|runner| exec(runner, command) }
+      runners.each {|runner, cfg| exec(runner, command, cfg.merge(opts)) }
     else
-      threads = runners.map {|runner| Thread.new { exec(runner, command) } }
+      threads = runners.map {|runner, cfg| Thread.new { exec(runner, command, cfg.merge(opts)) } }
       threads.each {|t| t.join }
     end
   end
 
-  def exec(runner, command)
+  def exec(runner, command, opts)
     if @demonstrate
-      runner.demonstrate(command)
+      runner.demonstrate(command, opts)
     else
-      runner.execute(command)
+      runner.execute(command, opts)
     end
   end
 
@@ -168,7 +185,7 @@ class Inprovise::Controller
       groups = names.collect do |name|
         grp = Inprovise::Infrastructure.find(name)
         raise ArgumentError, "Unknown group [#{name}]" unless grp
-        raise ArgumentError, "#{name} is NOT a group" unless grp.is_a?(Inprovise::Infrastucture::Group)
+        raise ArgumentError, "#{name} is NOT a group" unless grp.is_a?(Inprovise::Infrastructure::Group)
         grp
       end
       opts = options[:config].inject({}) do |rc, cfg|

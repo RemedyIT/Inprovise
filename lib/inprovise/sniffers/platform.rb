@@ -9,9 +9,9 @@ class Inprovise::Sniffer::PlatformSniffer
 
   def run
     attrs = {}
-    attrs['machine'] = context.run('uname -m').strip
+    attrs[:machine] = context.run('uname -m').strip
     ostype = context.run('uname -o').strip
-    attrs['os'] = '(unknown)'
+    attrs[:os] = '(unknown)'
     case ostype
     when /linux/i
       get_linux_platform(attrs)
@@ -29,12 +29,12 @@ class Inprovise::Sniffer::PlatformSniffer
     elsif context.remote('/etc/SuSE-release').exists?
       get_suse_release(attrs)
     end
-    attrs['pkgman'] = case attrs['os']
-                      when 'fedora', 'centos', 'rhel'
-                        context.binary_exists?('dnf') ? 'dnf' : 'yum'
-                      when /suse/
-                        'zypper'
-                      end
+    attrs[:pkgman] = case attrs[:os]
+                     when 'fedora', 'centos', 'rhel'
+                       context.binary_exists?('dnf') ? 'dnf' : 'yum'
+                     when /suse/
+                       'zypper'
+                     end
   end
 
   def get_os_release(attrs)
@@ -46,13 +46,13 @@ class Inprovise::Sniffer::PlatformSniffer
       end
       hash
     end
-    attrs['os'] = vars['ID'].downcase
-    attrs['os-version'] = vars['VERSION_ID']
-    if attrs['os'] == 'centos' && context.remote('/etc/centos-release').exists?
+    attrs[:os] = vars['ID'].downcase
+    attrs[:'os-version'] = vars['VERSION_ID']
+    if attrs[:os] == 'centos' && context.remote('/etc/centos-release').exists?
       data = context.remote('/etc/centos-release').content.split("\n").collect {|l| l.strip }
       data.each do |line|
         if line =~ /\s+release\s+(\d+)\.(\d+).*/
-          attrs['os-version'] = "#{$1}.#{$2}"
+          attrs[:'os-version'] = "#{$1}.#{$2}"
         end
       end
     end
@@ -62,9 +62,9 @@ class Inprovise::Sniffer::PlatformSniffer
     data = context.remote('/etc/redhat-release').content.split("\n").collect {|l| l.strip }
     data.each do |line|
       if line =~ /\A(.+)\s+release\s+(\d+)(\.(\d+))?/
-        attrs['os-version'] = "#{$2}.#{$4 || '0'}"
+        attrs[:'os-version'] = "#{$2}.#{$4 || '0'}"
         tmpos = $1.strip.downcase
-        attrs['os'] = case tmpos
+        attrs[:os] = case tmpos
                       when /fedora/
                         'fedora'
                       when /red\s+hat/
@@ -78,10 +78,10 @@ class Inprovise::Sniffer::PlatformSniffer
 
   def get_suse_release(attrs)
     data = context.remote('/etc/SuSE-release').content.split("\n").collect {|l| l.strip }
-    attrs['os'] = data.shift.split(' ').first.downcase
+    attrs[:os] = data.shift.split(' ').first.downcase
     data.each do |l|
       if data =~ /\AVERSION\s*=\s*(.*)/i
-        attrs['os-version'] = $1.strip
+        attrs[:'os-version'] = $1.strip
       end
     end
   end
