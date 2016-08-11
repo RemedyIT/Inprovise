@@ -101,6 +101,19 @@ class Inprovise::Controller
     Module.new { def self.eval(s); binding.eval(s); end }.eval(v) rescue v
   end
 
+  def add_pubkey_script(node, pubkey_path)
+    Inprovise::DSL.script("pubkey-#{node.name}") do
+      apply do
+        local_pubkey = local(pubkey_path)
+        remote_pubkey = "inprovise-upload-#{local_pubkey.hash}"
+        local_pubkey.copy_to(remote(remote_pubkey))
+        sudo("cat #{remote_pubkey} >> ${HOME}/.ssh/authorized_keys")
+        remote(remote_pubkey).delete!
+        remote('${HOME}/.ssh/authorized_keys').set_permissions(644)
+      end
+    end
+  end
+
   def run_node_cmd(command, options, *names)
     case command
     when :add
@@ -118,6 +131,13 @@ class Inprovise::Controller
         grp = Inprovise::Infrastructure.find(g)
         raise ArgumentError, "Unknown group #{g}" unless grp
         node.add_to(grp)
+      end
+      if options[:'public-key']
+        pubkey_path = options[:'public-key']
+        pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
+        raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
+        script = add_pubkey_script(node, pubkey_path)
+        Inprovise::ScriptRunner.new(node, script, true).execute(:apply)
       end
     when :remove
       names.each {|name| Inprovise::Infrastructure.deregister(name) }
@@ -161,6 +181,13 @@ class Inprovise::Controller
       grp = Inprovise::Infrastructure.find(g)
       raise ArgumentError, "Unknown group #{g}" unless grp
       tgt.add_to(grp)
+    end
+    if options[:'public-key']
+      pubkey_path = options[:'public-key']
+      pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
+      raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
+      script = add_pubkey_script(tgt, pubkey_path)
+      Inprovise::ScriptRunner.new(tgt, script, true).execute(:apply)
     end
   end
 
