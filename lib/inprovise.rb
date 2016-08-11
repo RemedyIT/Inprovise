@@ -63,6 +63,13 @@ module Inprovise
       end
     end
 
+    dsl_define do
+      def include(path)
+        path = File.expand_path(path, Inprovise.root)
+        Inprovise::DSL.module_eval(File.read(path))
+      end
+    end
+
   end
 
 end

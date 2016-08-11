@@ -22,7 +22,7 @@ class Inprovise::ScriptRunner
 
   def execute(command_name)
     scrs = scripts
-    scrs.reverse! if command_name.to_sym == :remove
+    scrs.reverse! if command_name.to_sym == :revert
     @log.say pkgs.map(&:name).join(', ').yellow
     scrs.each do |script|
       send(:"execute_#{command_name}", script)
@@ -35,9 +35,9 @@ class Inprovise::ScriptRunner
     validate!(script)
   end
 
-  def execute_remove(script)
-    return unless should_run?(script, :remove)
-    exec(script, :remove)
+  def execute_revert(script)
+    return unless should_run?(script, :revert)
+    exec(script, :revert)
   end
 
   def execute_validate(script)
@@ -47,7 +47,7 @@ class Inprovise::ScriptRunner
   def should_run?(script, command_name)
     return false unless script.provides_command?(command_name)
     return true unless @perform
-    return true unless command_name == :apply || command_name == :remove
+    return true unless command_name == :apply || command_name == :revert
     return true unless script.provides_command?(:validate)
     is_present = is_valid?(script)
     return !is_present if command_name == :apply

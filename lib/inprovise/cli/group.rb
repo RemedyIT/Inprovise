@@ -36,6 +36,21 @@ class Inprovise::Cli
 
     end
 
+    cgrp.desc 'Update configuration for the given groups.'
+    cgrp.arg_name 'GROUP[ GROUP [...]]'
+    cgrp.command :update do |cgrp_update|
+
+      cgrp_update.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the group(s)'
+      cgrp_update.switch [:r, :reset], negatable: false, :desc => 'Reset configuration before update (default is to merge updates)'
+      cgrp_update.flag [:t, :target], :arg_name => 'NAME', :multiple => true, :desc => 'Add a known target (node or group) to the group(s)'
+
+      cgrp_update.action do |global,options,args|
+        raise ArgumentError, 'Missing argument!' if args.empty?
+        ctl = Inprovise::Controller.new(global)
+        ctl.run(:update, options, :group, *args)
+      end
+    end
+
     cgrp.default_desc 'List infrastructure groups'
     cgrp.action do |global_options,options,args|
       $stderr.puts "\tINFRASTRUCTURE GROUPS"

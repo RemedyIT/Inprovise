@@ -19,6 +19,7 @@ class Inprovise::Cli
 
   subcommand_option_handling :normal
   arguments :strict
+  sort_help :manually
 
   desc 'Don\'t actually run any commands on the group, just pretend.'
   switch [:n,:'dry-run'], {negatable: false}
@@ -34,16 +35,57 @@ class Inprovise::Cli
   desc 'Don\'t run tasks in parrallel across nodes.'
   switch [:sequential], {negatable: false}
 
+  desc 'Don\'t validate and run dependencies.'
+  switch [:'skip-dependencies'], {negatable: false}
+
   # class_option :throw,       :type => :boolean, :desc => "Don't pretty print errors, raise with a stack trace."
-  # class_option :'skip-dependancies', :type => :boolean, :desc => "Don't validate and run dependencies."
 
   commands_from(File.join(File.dirname(__FILE__), 'cli'))
 
-  desc 'Update infrastructure nodes and/or groups.'
-  command :update do |cupdate|
+  desc 'Apply the given script/package to the specified infrastructure nodes and/or groups.'
+  arg_name 'SCRIPT TARGET[ TARGET[...]]'
+  command :apply do |capply|
 
+    capply.desc 'Path to a provisioning scheme to load'
+    capply.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+
+    capply.action do |global, options, args|
+      raise ArgumentError, 'Missing arguments!' if args.empty?
+      raise ArgumentError, 'Missing targets!' if args.size < 2
+      ctl = Inprovise::Controller.new(global)
+      ctl.run(:apply, options, *args)
+    end
   end
 
+  desc 'Revert the given script/package on the specified infrastructure nodes and/or groups.'
+  arg_name 'SCRIPT NAME[ NAME[...]]'
+  command :revert do |crevert|
+
+    crevert.desc 'Path to a provisioning scheme to load'
+    crevert.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+
+    crevert.action do |global, options, args|
+      raise ArgumentError, 'Missing arguments!' if args.empty?
+      raise ArgumentError, 'Missing targets!' if args.size < 2
+      ctl = Inprovise::Controller.new(global)
+      ctl.run(:revert, options, *args)
+    end
+  end
+
+  desc 'Trigger a specific action on the specified infrastructure nodes and/or groups.'
+  arg_name 'ACTION NAME[ NAME[...]]'
+  command :trigger do |ctrigger|
+
+    ctrigger.desc 'Path to a provisioning scheme to load'
+    ctrigger.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+
+    ctrigger.action do |global, options, args|
+      raise ArgumentError, 'Missing arguments!' if args.empty?
+      raise ArgumentError, 'Missing targets!' if args.size < 2
+      ctl = Inprovise::Controller.new(global)
+      ctl.run(:trigger, options, *args)
+    end
+  end
 
   pre do |global,command,options,args|
     # Pre logic here
@@ -65,6 +107,9 @@ class Inprovise::Cli
   on_error do |exception|
     # Error logic here
     # return false to skip default error handling
+    if Inprovise.verbosity > 0
+      $stderr.puts "#{exception}\n#{exception.backtrace.join("\n")}"
+    end
     true
   end
 

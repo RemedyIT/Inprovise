@@ -7,6 +7,40 @@
 class Inprovise::Script
   attr_reader :name, :dependencies, :actions, :children, :user
 
+  class DSL
+    def initialize(script)
+      @script = script
+    end
+
+    def depends_on(*scr_names)
+      @script.depends_on(*scr_names)
+    end
+
+    def triggers(*scr_names)
+      @script.triggers(*scr_names)
+    end
+
+    def validate(&definition)
+      @script.validate(&definition)
+    end
+
+    def apply(&definition)
+      @script.apply(&definition)
+    end
+
+    def revert(&definition)
+      @script.revert(&definition)
+    end
+
+    def as(user)
+      @script.as(user)
+    end
+
+    def action(name, &definition)
+      @script.action(name, &definition)
+    end
+  end
+
   def initialize(name)
     @name = name
     @user = nil
@@ -37,8 +71,8 @@ class Inprovise::Script
     command(:apply, &definition)
   end
 
-  def remove(&definition)
-    command(:remove, &definition)
+  def revert(&definition)
+    command(:revert, &definition)
   end
 
   def as(user)
@@ -69,7 +103,7 @@ end
 Inprovise::DSL.dsl_define do
   def script(name, &definition)
     Inprovise.add_script(Inprovise::Script.new(name)) do |script|
-      script.instance_eval(&definition)
+      Inprovise::Script::DSL.new(script).instance_eval(&definition)
     end
   end
 end
