@@ -38,6 +38,22 @@ class Inprovise::Cli
     end
   end
 
+  desc 'Validate the given script/package on the specified infrastructure nodes and/or groups.'
+  arg_name 'SCRIPT NAME[ NAME[...]]'
+  command :validate do |cvalid|
+
+    cvalid.desc 'Path to a provisioning scheme to load'
+    cvalid.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+    cvalid.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
+
+    cvalid.action do |global, options, args|
+      raise ArgumentError, 'Missing arguments!' if args.empty?
+      raise ArgumentError, 'Missing targets!' if args.size < 2
+      ctl = Inprovise::Controller.new(global)
+      ctl.run(:revert, options, *args)
+    end
+  end
+
   desc 'Trigger a specific action on the specified infrastructure nodes and/or groups.'
   arg_name 'ACTION NAME[ NAME[...]]'
   command :trigger do |ctrigger|

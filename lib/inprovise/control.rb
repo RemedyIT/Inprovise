@@ -24,7 +24,7 @@ class Inprovise::Controller
         when :group
           run_group_cmd(command, options, *args)
         end
-      else # :apply, :revert or :trigger
+      else # :apply, :revert, :validate or :trigger
         run_provisioning_command(command, options, *args)
       end
     rescue Exception => e
@@ -123,6 +123,9 @@ class Inprovise::Controller
         rc
       end
       @targets << (node = Inprovise::Infrastructure::Node.new(names.first, opts))
+
+      Inprovise.log.local("Adding #{node.to_s}")
+
       log = Inprovise::Logger.new(node, nil)
       exec = Inprovise::ExecutionContext.new(node, log)
       #log.stdout('sniffing', true)
@@ -140,7 +143,14 @@ class Inprovise::Controller
         Inprovise::ScriptRunner.new(node, script, true).execute(:apply)
       end
     when :remove
-      names.each {|name| Inprovise::Infrastructure.deregister(name) }
+      names.each do |name|
+        node = Inprovise::Infrastructure.find(name)
+        raise ArgumentError, "Invalid node #{name}" unless node && node.is_a?(Inprovise::Infrastructure::Node)
+
+        Inprovise.log.local("Removing #{node.to_s}")
+
+        Inprovise::Infrastructure.deregister(name)
+      end
     when :update
       @targets = names.collect do |name|
         tgt = Inprovise::Infrastructure.find(name)
@@ -163,6 +173,8 @@ class Inprovise::Controller
   end
 
   def run_target_update(tgt, tgt_opts, options)
+    Inprovise.log.local("Updating #{tgt.to_s}")
+
     log = Inprovise::Logger.new(tgt, nil)
     exec = Inprovise::ExecutionContext.new(tgt, log)
     if options[:reset]
@@ -201,18 +213,27 @@ class Inprovise::Controller
         rc
       end
       grp = Inprovise::Infrastructure::Group.new(names.first, opts, options[:target])
+
+      Inprovise.log.local("Adding #{grp.to_s}")
+
       options[:target].each do |t|
         tgt = Inprovise::Infrastructure.find(t)
         raise ArgumentError, "Unknown target #{t}" unless tgt
         tgt.add_to(grp)
       end
     when :remove
-      names.each {|name| Inprovise::Infrastructure.deregister(name) }
+      names.each do |name|
+        grp = Inprovise::Infrastructure.find(name)
+        raise ArgumentError, "Invalid group #{name}" unless grp && grp.is_a?(Inprovise::Infrastructure::Group)
+
+        Inprovise.log.local("Removing #{grp.to_s}")
+
+        Inprovise::Infrastructure.deregister(name)
+      end
     when :update
       groups = names.collect do |name|
         grp = Inprovise::Infrastructure.find(name)
-        raise ArgumentError, "Unknown group [#{name}]" unless grp
-        raise ArgumentError, "#{name} is NOT a group" unless grp.is_a?(Inprovise::Infrastructure::Group)
+        raise ArgumentError, "Invalid group #{name}" unless grp && grp.is_a?(Inprovise::Infrastructure::Group)
         grp
       end
       opts = options[:config].inject({}) do |rc, cfg|
@@ -226,6 +247,8 @@ class Inprovise::Controller
                    tgt
                  end
       groups.each do |grp|
+        Inprovise.log.local("Updating #{grp.to_s}")
+
         grp.config.clear if options[:reset]
         grp.config.merge!(opts)
         grp_tgts.each {|tgt| tgt.add_to(grp) }

@@ -5,6 +5,8 @@
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::ScriptRunner
+  COMMANDS = {apply: %w{Applying to}, revert: %w(Reverting on), validate: %w(Validating on)}
+
   def initialize(node, script, skip_dependencies=false)
     @node = node
     @script = script
@@ -21,6 +23,7 @@ class Inprovise::ScriptRunner
   end
 
   def execute(command_name, config=nil)
+    Inprovise.log.local("#{COMMANDS[command_name].first} #{@script.name} #{COMMANDS[command_name].last} #{@node.to_s}")
     scrs = scripts
     scrs.reverse! if command_name.to_sym == :revert
     @log.say scrs.map(&:name).join(', ').yellow

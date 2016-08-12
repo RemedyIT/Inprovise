@@ -12,6 +12,7 @@ class Inprovise::TriggerRunner
   end
 
   def execute(_, config=nil)
+    Inprovise.log.local("Triggering #{@action_ref} for #{@node.to_s}")
     Inprovise::ExecutionContext.new(@node, @log, config).trigger(@action_ref, *@args)
   end
 
