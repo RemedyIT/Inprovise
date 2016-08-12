@@ -18,7 +18,7 @@ class Inprovise::LocalFile
     if path =~ /^\//
       path
     else
-      File.join(Orca.root, path)
+      File.join(Inprovise.root, path)
     end
   end
 

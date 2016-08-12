@@ -6,12 +6,13 @@
 
 require 'erb'
 require 'tilt'
+require 'tempfile'
 
 class Inprovise::Template
   def initialize(node, path)
     @node = node
     @path = resolve(path)
-    @template = Tilt.new(@path)
+    @template = @path.respond_to?(:call) ? Tilt['erb'].new(&@path) : Tilt.new(@path)
   end
 
   def render(locals={})
@@ -19,7 +20,7 @@ class Inprovise::Template
   end
 
   def render_to_tempfile(locals={})
-    basename = File.basename(@path).gsub('.', '-')
+    basename = @path.respond_to?(:call) ? 'inprovise-inline-tpl' : File.basename(@path).gsub('.', '-')
     file = Tempfile.new(basename)
     file.write render(locals)
     file.close
@@ -29,7 +30,7 @@ class Inprovise::Template
   private
 
   def resolve(path)
-    if path =~ /^\//
+    if path.respond_to?(:call) || path =~ /^\//
       path
     else
       File.join(Inprovise.root, path)
