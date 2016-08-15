@@ -129,7 +129,7 @@ class Inprovise::Controller
       log = Inprovise::Logger.new(node, nil)
       exec = Inprovise::ExecutionContext.new(node, log)
       #log.stdout('sniffing', true)
-      node.set(:attributes, Inprovise::Sniffer.run_sniffers_for(exec))
+      node.set(:attributes, Inprovise::Sniffer.run_sniffers_for(exec)) if options[:sniff]
       options[:group].each do |g|
         grp = Inprovise::Infrastructure.find(g)
         raise ArgumentError, "Unknown group #{g}" unless grp

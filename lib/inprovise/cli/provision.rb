@@ -50,7 +50,7 @@ class Inprovise::Cli
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
       ctl = Inprovise::Controller.new(global)
-      ctl.run(:revert, options, *args)
+      ctl.run(:validate, options, *args)
     end
   end
 

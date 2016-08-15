@@ -15,6 +15,7 @@ class Inprovise::Cli
 
       cnod_add.flag [:a, :address], :arg_name => 'ADDRESS', :desc => 'Set the node address (hostname or IP). If not set node name is used as hostname.'
       cnod_add.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the node.'
+      cnod_add.switch [:sniff], :default_value => true, :desc => 'Enable or disable running sniffers'
       cnod_add.flag [:g, :group], :arg_name => 'GROUP', :multiple => true, :desc => 'Existing infrastructure group to add new node to.'
       cnod_add.flag [:k, :'public-key'], :arg_name => 'FILE', :desc => 'Public key to install for future authentication.'
 
