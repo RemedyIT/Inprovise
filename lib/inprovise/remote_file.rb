@@ -1,7 +1,6 @@
 # RemoteFile support for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 require 'digest/sha1'

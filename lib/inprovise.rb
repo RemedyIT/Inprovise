@@ -1,7 +1,6 @@
 # Main loader for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 require 'rubygems'
@@ -90,7 +89,7 @@ require_relative './inprovise/resolver'
 require_relative './inprovise/template'
 require_relative './inprovise/execution_context'
 require_relative './inprovise/infra'
-require_relative './inprovise/sniff'
 require_relative './inprovise/file_action'
+require_relative './inprovise/sniff'
 require_relative './inprovise/control'
 require_relative './inprovise/cli'

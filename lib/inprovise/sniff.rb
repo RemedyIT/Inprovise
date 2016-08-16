@@ -1,60 +1,44 @@
 # Sniffer main module for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 module Inprovise::Sniffer
 
+  ROOT_SCRIPT = 'sniffers'
+
   class << self
 
     def sniffers
-      @sniffers ||= []
+      @sniffers ||= Inprovise::ScriptIndex.new('sniffers')
     end
 
-    def add_sniffer(sniffer)
-      raise ArgumentError, 'Invalid sniffer added.' unless sniffer.respond_to?(:id) && sniffer.respond_to?(:sniff_for)
-      sniffers << sniffer
+    def add_sniffer(name, &definition)
+      Inprovise.log.local("Adding sniffer script #{name}") if Inprovise.verbosity > 2
+      script = Inprovise::Script.new(name)
+      Inprovise::Script::DSL.new(script).instance_eval(&definition) if block_given?
+      sniffers.add(script)
+      script
+    end
+    private :add_sniffer
+
+    def sniffer(name, &definition)
+      script = add_sniffer(name, &definition)
+      sniffers.get(ROOT_SCRIPT).triggers(script.name)
     end
 
-    def run_sniffers_for(context)
-      sniffers.inject({}) {|attr, sniffer| attr[sniffer.id.to_sym] = sniffer.sniff_for(context); attr }
-    end
-
-  end
-
-  module SnifferMixin
-
-    def self.included(mod)
-      sniffer_id = mod.name.split('::').last.sub(/Sniffer\Z/,'')
-      sniffer_id.gsub!(/([A-Z\d]+)([A-Z][a-z])/,'\1_\2')
-      sniffer_id.gsub!(/([a-z\d])([A-Z])/,'\1_\2')
-      sniffer_id.tr!('-', '_')
-      sniffer_id.downcase!
-      mod.class_eval %Q{
-        attr_reader :context
-
-        def initialize(context)
-          @context = context
-        end
-
-        def self.id
-          '#{sniffer_id}'
-        end
-
-        def self.sniff_for(context)
-          context.log.set_task("Sniff{#{sniffer_id}}")
-          new(context).run
-        end
-
-        def run
-          raise 'Unimplemented sniffer'
-        end
-      }
-      Inprovise::Sniffer.add_sniffer(mod)
+    def run_sniffers_for(node)
+      node.config[:attributes] ||= {}
+      runner = Inprovise::ScriptRunner.new(node, 'sniffers')
+      runner.set_index(@sniffers)
+      runner.execute(:apply)
     end
 
   end
+
+  # add root sniffer script
+  # (doesn't do anything by itself except provide a container triggering all specific sniffers)
+  add_sniffer(ROOT_SCRIPT)
 
 end
 

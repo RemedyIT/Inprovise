@@ -1,7 +1,6 @@
 # Execution context for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 require "open3"
@@ -9,11 +8,12 @@ require "open3"
 class Inprovise::ExecutionContext
   attr_reader :node, :log, :config
 
-  def initialize(node, log, config=nil)
+  def initialize(node, log, index, config=nil)
     @node = node
     @log = log
     @node.log_to(@log)
     @config = config || @node.config.dup
+    @index = index
   end
 
   def apply(blk)
@@ -85,7 +85,7 @@ class Inprovise::ExecutionContext
 
   def trigger(action_ref, *args)
     pkg_name, action_name = *action_ref.split(':', 2)
-    pkg = Inprovise::ScriptIndex.default.get(pkg_name)
+    pkg = @index.get(pkg_name)
     action = pkg.actions[action_name]
     raise Inprovise::MissingActionError.new(action_ref) unless action
     instance_exec(*args, &action)

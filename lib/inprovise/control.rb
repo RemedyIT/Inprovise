@@ -1,7 +1,6 @@
 # Controller for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::Controller
@@ -101,8 +100,8 @@ class Inprovise::Controller
     Module.new { def self.eval(s); binding.eval(s); end }.eval(v) rescue v
   end
 
-  def add_pubkey_script(node, pubkey_path)
-    Inprovise::DSL.script("pubkey-#{node.name}") do
+  def run_pubkey_script(node, pubkey_path)
+    script = Inprovise::DSL.script("pubkey-#{node.name}") do
       apply do
         local_pubkey = local(pubkey_path)
         remote_pubkey = "inprovise-upload-#{local_pubkey.hash}"
@@ -112,6 +111,7 @@ class Inprovise::Controller
         remote('${HOME}/.ssh/authorized_keys').set_permissions(644)
       end
     end
+    Inprovise::ScriptRunner.new(node, script, true).execute(:apply)
   end
 
   def run_node_cmd(command, options, *names)
@@ -126,21 +126,19 @@ class Inprovise::Controller
 
       Inprovise.log.local("Adding #{node.to_s}")
 
-      log = Inprovise::Logger.new(node, nil)
-      exec = Inprovise::ExecutionContext.new(node, log)
-      #log.stdout('sniffing', true)
-      node.set(:attributes, Inprovise::Sniffer.run_sniffers_for(exec)) if options[:sniff]
+      Inprovise::Sniffer.run_sniffers_for(node) if options[:sniff]
+
       options[:group].each do |g|
         grp = Inprovise::Infrastructure.find(g)
         raise ArgumentError, "Unknown group #{g}" unless grp
         node.add_to(grp)
       end
+
       if options[:'public-key']
         pubkey_path = options[:'public-key']
         pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
         raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
-        script = add_pubkey_script(node, pubkey_path)
-        Inprovise::ScriptRunner.new(node, script, true).execute(:apply)
+        run_pubkey_script(node, pubkey_path)
       end
     when :remove
       names.each do |name|
@@ -175,8 +173,6 @@ class Inprovise::Controller
   def run_target_update(tgt, tgt_opts, options)
     Inprovise.log.local("Updating #{tgt.to_s}")
 
-    log = Inprovise::Logger.new(tgt, nil)
-    exec = Inprovise::ExecutionContext.new(tgt, log)
     if options[:reset]
       # preserve :host
       tgt_opts[:host] = tgt.get(:host) if tgt.get(:host)
@@ -188,7 +184,7 @@ class Inprovise::Controller
       tgt.config.clear
     end
     tgt.config.merge!(tgt_opts) # merge new + preserved config
-    tgt.set(:attributes, (tgt.get(:attributes) || {}).merge(Inprovise::Sniffer.run_sniffers_for(exec))) if options[:sniff]
+    Inprovise::Sniffer.run_sniffers_for(tgt) if options[:sniff]
     options[:group].each do |g|
       grp = Inprovise::Infrastructure.find(g)
       raise ArgumentError, "Unknown group #{g}" unless grp
@@ -198,8 +194,7 @@ class Inprovise::Controller
       pubkey_path = options[:'public-key']
       pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
       raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
-      script = add_pubkey_script(tgt, pubkey_path)
-      Inprovise::ScriptRunner.new(tgt, script, true).execute(:apply)
+      run_pubkey_script(tgt, pubkey_path)
     end
   end
 

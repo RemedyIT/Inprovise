@@ -1,7 +1,6 @@
 # Trigger runner for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::TriggerRunner
@@ -9,15 +8,20 @@ class Inprovise::TriggerRunner
     @node = node
     @action_ref, @args = *parse_action_ref(action_ref_with_args)
     @log = Inprovise::Logger.new(@node, @action_ref)
+    @index = Inprovise::ScriptIndex.default
+  end
+
+  def set_index(index)
+    @index = index
   end
 
   def execute(_, config=nil)
     Inprovise.log.local("Triggering #{@action_ref} for #{@node.to_s}")
-    Inprovise::ExecutionContext.new(@node, @log, config).trigger(@action_ref, *@args)
+    Inprovise::ExecutionContext.new(@node, @log, @index, config).trigger(@action_ref, *@args)
   end
 
   def demonstrate(_, config=nil)
-    Inprovise::MockExecutionContext.new(@node, @log, config).trigger(@action_ref, *@args)
+    Inprovise::MockExecutionContext.new(@node, @log, @index, config).trigger(@action_ref, *@args)
   end
 
   private

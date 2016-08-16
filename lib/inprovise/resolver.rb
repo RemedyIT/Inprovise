@@ -1,22 +1,22 @@
 # Script dependency Resolver for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::Resolver
   attr_reader :scripts, :tree
-  def initialize(script)
+  def initialize(script,index=nil)
     @script = script
+    @index = index || Inprovise::ScriptIndex.default
     @last_seen = script
     @tree = [@script]
     @scripts = []
   end
 
   def resolve
-    dependencies = @script.dependencies.reverse.map { |d| Inprovise::ScriptIndex.default.get(d) }
+    dependencies = @script.dependencies.reverse.map { |d| @index.get(d) }
     begin
-      @tree += dependencies.map {|d| Inprovise::Resolver.new(d).resolve.tree }
+      @tree += dependencies.map {|d| Inprovise::Resolver.new(d, @index).resolve.tree }
     rescue SystemStackError
       raise CircularDependencyError.new
     end
@@ -31,7 +31,7 @@ class Inprovise::Resolver
     @scripts = @scripts.reduce([]) do |arr, script|
       arr << script
       script.children.each do |child_name|
-        child = Inprovise::ScriptIndex.default.get(child_name)
+        child = @index.get(child_name)
         arr << child unless arr.include?(child)
       end
       arr

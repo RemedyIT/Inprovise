@@ -1,7 +1,6 @@
 # Script runner for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::ScriptRunner
@@ -10,24 +9,33 @@ class Inprovise::ScriptRunner
   def initialize(node, script, skip_dependencies=false)
     @node = node
     @script = script
+    @index = Inprovise::ScriptIndex.default
     @perform = true
     @skip_dependencies = skip_dependencies
     @log = Inprovise::Logger.new(@node, script)
   end
 
+  def set_index(index)
+    @index = index
+  end
+
+  def script
+    Inprovise::Script === @script ? @script : @index.get(@script)
+  end
+
   def scripts
-    return [@script] if @skip_dependencies
-    resolver = Inprovise::Resolver.new(@script)
+    return [script] if @skip_dependencies
+    resolver = Inprovise::Resolver.new(script, @index)
     resolver.resolve
     resolver.scripts
   end
 
   def execute(command_name, config=nil)
-    Inprovise.log.local("#{COMMANDS[command_name].first} #{@script.name} #{COMMANDS[command_name].last} #{@node.to_s}")
+    Inprovise.log.local("#{COMMANDS[command_name].first} #{script.name} #{COMMANDS[command_name].last} #{@node.to_s}")
     scrs = scripts
     scrs.reverse! if command_name.to_sym == :revert
     @log.say scrs.map(&:name).join(', ').yellow
-    context = @perform ? Inprovise::ExecutionContext.new(@node, @log, config) : Inprovise::MockExecutionContext.new(@node, @log, config)
+    context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     scrs.each do |script|
       send(:"execute_#{command_name}", script, context)
     end

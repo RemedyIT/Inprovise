@@ -1,7 +1,6 @@
 # LocalFile support for Inprovise
 #
 # Author::    Martin Corino
-# Copyright:: Copyright (c) 2016 Martin Corino
 # License::   Distributes under the same license as Ruby
 
 require 'digest/sha1'
@@ -29,6 +28,11 @@ class Inprovise::LocalFile
 
   def exists?
     File.exists?(@path)
+  end
+
+  def content
+    return File.read(@path) if exists?
+    nil
   end
 
   # deosnt check permissions or user. should it?
