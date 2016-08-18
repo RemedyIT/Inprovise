@@ -23,7 +23,7 @@ module Inprovise::Sniffer
     private :add_sniffer
 
     def sniffer(name, &definition)
-      script = add_sniffer(name, &definition)
+      script = add_sniffer("sniff[#{name}]", &definition)
       sniffers.get(ROOT_SCRIPT).triggers(script.name)
     end
 
@@ -42,4 +42,4 @@ module Inprovise::Sniffer
 
 end
 
-require_relative './sniffers/platform.rb'
+require_relative './sniffer/platform.rb'

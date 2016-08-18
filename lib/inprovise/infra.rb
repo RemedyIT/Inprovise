@@ -59,6 +59,10 @@ module Inprovise::Infrastructure
       end
     end
 
+    def init(path)
+      File.open(path, 'w') {|f| f << JSON.pretty_generate([]) }
+    end
+
     def load
       targets.synchronize do
         JSON.load(IO.read(Inprovise.infra)) if File.readable?(Inprovise.infra)

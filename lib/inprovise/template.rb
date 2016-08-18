@@ -8,14 +8,14 @@ require 'tilt'
 require 'tempfile'
 
 class Inprovise::Template
-  def initialize(node, path)
-    @node = node
+  def initialize(path, context = nil)
+    @context = context || Object.new
     @path = resolve(path)
     @template = @path.respond_to?(:call) ? Tilt['erb'].new(&@path) : Tilt.new(@path)
   end
 
   def render(locals={})
-    @template.render(@node, locals)
+    @template.render(@context, locals)
   end
 
   def render_to_tempfile(locals={})

@@ -106,7 +106,11 @@ class Inprovise::Controller
         local_pubkey = local(pubkey_path)
         remote_pubkey = "inprovise-upload-#{local_pubkey.hash}"
         local_pubkey.copy_to(remote(remote_pubkey))
-        sudo("cat #{remote_pubkey} >> ${HOME}/.ssh/authorized_keys")
+        unless remote('${HOME}/.ssh').exists?
+          mkdir('${HOME}/.ssh')
+          remote('${HOME}/.ssh').set_permissions(755)
+        end
+        run("cat #{remote_pubkey} >> ${HOME}/.ssh/authorized_keys")
         remote(remote_pubkey).delete!
         remote('${HOME}/.ssh/authorized_keys').set_permissions(644)
       end

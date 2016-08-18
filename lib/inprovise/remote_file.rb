@@ -19,20 +19,27 @@ class Inprovise::RemoteFile
 
   def hash
     return nil unless exists?
-    @hash ||= @context.run("sha1sum #{path}")[0...40]
+    @hash ||= @context.node.hash(path)
   end
 
   def exists?
     return @exists unless @exists.nil?
-    result = @context.run(%[if [ -f #{path} ]; then echo "true"; else echo "false"; fi])
-    @exists = result.strip == 'true'
+    @exists = @context.node.exists?(path)
+  end
+
+  def directory?
+    @context.node.directory?(path)
+  end
+
+  def file?
+    @context.node.file?(path)
   end
 
   def content
-    @context.run("cat #{path}")
+    @context.node.cat(path)
   end
 
-  # deosnt check permissions or user. should it?
+  # doesnt check permissions or user. should it?
   def matches?(other)
     self.exists? && other.exists? && self.hash == other.hash
   end
@@ -51,45 +58,52 @@ class Inprovise::RemoteFile
   end
 
   def duplicate(destination)
-    @context.sudo("cp #{path} #{destination.path}")
+    @context.node.copy(path, destination.path)
     destination
   end
 
   def download(destination)
-    @context.download(path, destination.path)
+    if String === destination || destination.is_local?
+      @context.node.download(path, String === destination ? destination : destination.path)
+    else
+      @context.node.copy(path, destination.path)
+    end
+    String === destination ? @context.local(destination) : destination
   end
 
   def upload(source)
-    @context.upload(source.path, path)
+    if String === source || source.is_local?
+      @context.node.upload(String === source ? source : source.path, path)
+    else
+      @context.node.copy(source.path, path)
+    end
+    self
   end
 
   def delete!
-    @context.remove(path) if exists?
+    @context.node.delete(path) if exists?
     invalidate!
     self
   end
 
   def set_permissions(mask)
-    @context.sudo("chmod -R #{sprintf("%o",mask)} #{path}")
+    @context.node.set_permissions(path, mask)
     invalidate!
     self
   end
 
   def permissions
-    @permissions ||= @context.run("stat --format=%a #{path}").strip.to_i(8)
+    @permissions ||= @context.node.permissions(path)
   end
 
   def set_owner(user, group=nil)
-    @context.sudo("chown -R #{user}:#{group} #{path}")
+    @context.node.set_owner(path, user, group)
     invalidate!
     self
   end
 
   def owner
-    @owner ||= begin
-      user, group = @context.run("stat --format=%U:%G #{path}").chomp.split(":")
-      {:user => user, :group => group}
-    end
+    @owner ||= @context.node.owner(path)
   end
 
   def user

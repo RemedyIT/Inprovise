@@ -10,7 +10,7 @@ class Inprovise::Cli
   command :apply do |capply|
 
     capply.desc 'Path to a provisioning scheme to load'
-    capply.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+    capply.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
     capply.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
 
     capply.action do |global, options, args|
@@ -26,7 +26,7 @@ class Inprovise::Cli
   command :revert do |crevert|
 
     crevert.desc 'Path to a provisioning scheme to load'
-    crevert.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+    crevert.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
     crevert.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
 
     crevert.action do |global, options, args|
@@ -42,7 +42,7 @@ class Inprovise::Cli
   command :validate do |cvalid|
 
     cvalid.desc 'Path to a provisioning scheme to load'
-    cvalid.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+    cvalid.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
     cvalid.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
 
     cvalid.action do |global, options, args|
@@ -58,7 +58,7 @@ class Inprovise::Cli
   command :trigger do |ctrigger|
 
     ctrigger.desc 'Path to a provisioning scheme to load'
-    ctrigger.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => ENV['INPROVISE_SCHEME'] || 'inprovise.rb'
+    ctrigger.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
     ctrigger.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
 
     ctrigger.action do |global, options, args|

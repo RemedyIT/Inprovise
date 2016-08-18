@@ -13,7 +13,8 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   def initialize(name, config={})
     @host = config[:host] || name
     @user = config[:user] || 'root'
-    @connection = nil
+    @channel = nil
+    @helper = nil
     @history = []
     @user_nodes = {}
     super(name, config)
@@ -23,49 +24,109 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     get(meth)
   end
 
-  def upload(from, to)
-    log.sftp("UPLOAD: #{from} => #{to}")
-    sftp.upload!(from, to)
+  def channel
+    @channel ||= Inprovise::CmdChannel.open(self, config[:channel])
   end
 
-  def download(from, to)
-    log.sftp("DOWLOAD: #{from} => #{to}")
-    sftp.download!(from, to)
+  def helper
+    @helper ||= Inprovise::CmdHelper.get(self, config[:helper])
   end
 
-  def remove(path)
-    log.sftp("REMOVE: #{path}")
-    begin
-      sftp.remove!(path)
-    rescue Net::SFTP::StatusException
-      sudo("rm #{path}")
-    end
-  end
+  # generic command execution
 
-  def stat(path)
-    log.sftp("STAT: #{path}")
-    sftp.stat!(path)
-  end
-
-  def setstat(path, opts)
-    log.sftp("SET: #{path} - #{opts.inspect}")
-    sftp.setstat!(path, opts)
-  end
-
-  def sftp
-    @sftp ||= connection.sftp.connect
-  end
-
-  def execute(cmd, opts={})
-    if should_execute?(cmd, opts)
-      really_execute(cmd, opts)
+  def run(cmd, opts={})
+    if should_run?(cmd, opts)
+      really_run(cmd, opts)
     else
-      cached_execute(cmd, opts)
+      cached_run(cmd, opts)
     end
   end
 
   def sudo(cmd, opts={})
-    execute("sudo #{cmd}", opts)
+    opts = opts.merge({:sudo => true})
+    if should_run?(cmd, opts)
+      really_run(cmd, opts)
+    else
+      cached_run(cmd, opts)
+    end
+  end
+
+  # file management
+
+  def upload(from, to)
+    log.sftp("UPLOAD: #{from} => #{to}")
+    helper.upload(from, to)
+  end
+
+  def download(from, to)
+    log.sftp("DOWLOAD: #{from} => #{to}")
+    helper.download(from, to)
+  end
+
+  # basic commands
+
+  def echo(arg)
+    helper.echo(arg)
+  end
+
+  def env(var)
+    helper.env(var)
+  end
+
+  def cat(path)
+    helper.cat(path)
+  end
+
+  def hash(path)
+    helper.hash(path)
+  end
+
+  def mkdir(path)
+    helper.mkdir(path)
+  end
+
+  def exists?(path)
+    helper.exists?(path)
+  end
+
+  def file?(path)
+    helper.file?(path)
+  end
+
+  def directory?(path)
+    helper.directory?(path)
+  end
+
+  def copy(from, to)
+    helper.copy(from, to)
+  end
+
+  def delete(path)
+    helper.delete(path)
+  end
+
+  def permissions(path)
+    helper.permissions(path)
+  end
+
+  def set_permissions(path, perm)
+    helper.set_permissions(path, perm)
+  end
+
+  def owner(path)
+    helper.owner(path)
+  end
+
+  def group(path)
+    helper.group(path)
+  end
+
+  def set_owner(path, user, group=nil)
+    helper.set_owner(path, user, group=nil)
+  end
+
+  def binary_exists?(bin)
+    helper.binary_exists?(path)
   end
 
   def log
@@ -88,19 +149,10 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
 
   def prepare_connection_for_user!(new_user)
     @user = new_user
-    @connection = nil
+    @channel = nil
+    @helper = nil
     @user_nodes = {}
     @history = []
-  end
-
-  def connection
-    return @connection if @connection && !@connection.closed?
-    @connection = Net::SSH.start(@host, (@user), options_for_ssh)
-  end
-
-  def disconnect
-    @connection.close if @connection && !@connection.closed?
-    @user_nodes.values.each {|n| n.disconnect }
   end
 
   def to_s
@@ -132,30 +184,17 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
 
   private
 
-  def options_for_ssh
-    opts = [:auth_methods, :compression, :compression_level, :config, :encryption , :forward_agent , :global_known_hosts_file , :hmac , :host_key , :host_key_alias , :host_name, :kex , :keys , :key_data , :keys_only , :logger , :paranoid , :passphrase , :password , :port , :properties , :proxy , :rekey_blocks_limit , :rekey_limit , :rekey_packet_limit , :timeout , :user , :user_known_hosts_file , :verbose ]
-    config.reduce({}) do |hsh, (k,v)|
-      hsh[k] = v if opts.include?(k)
-      hsh
-    end
-  end
-
-  def cached_execute(cmd, opts={})
+  def cached_run(cmd, opts={})
+    cmd = "sudo #{cmd}" if opts[:sudo]
     log.cached(cmd)
     last_output(cmd)
   end
 
-  def really_execute(cmd, opts={})
+  def really_run(cmd, opts={})
+    exec = opts[:sudo] ? helper : helper.sudo
+    cmd = prefixed_command(cmd)
     begin
-      cmd = prefixed_command(cmd)
-      log.execute(cmd.cyan) if Inprovise.verbosity > 0
-      output = ""
-      connection.exec! cmd do |channel, stream, data|
-        output += data if stream == :stdout
-        data.split("\n").each do |line|
-          log.send(stream, line, opts[:log])
-        end if Inprovise.verbosity > 1 || opts[:log]
-      end
+      output = exec.run(cmd, opts[:log])
       @history << {cmd:cmd, output:output}
       output
     rescue Exception
@@ -163,8 +202,9 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     end
   end
 
-  def should_execute?(cmd, opts)
+  def should_run?(cmd, opts)
     return true unless opts[:once]
+    cmd = "sudo #{cmd}" if opts[:sudo]
     last_output(cmd).nil?
   end
 

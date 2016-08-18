@@ -10,6 +10,8 @@ module Inprovise
 
   VERSION = '0.1.1'
   INFRA_FILE = 'infra.json'
+  RC_FILE = 'rigrc'
+  DEFAULT_SCHEME = 'inprovise.rb'
 
   class << self
     def verbosity
@@ -26,6 +28,10 @@ module Inprovise
 
     def root
       @root ||= File.dirname(infra)
+    end
+
+    def default_scheme
+      ENV['INPROVISE_SCHEME'] || Inprovise::DEFAULT_SCHEME
     end
 
     def log
@@ -79,6 +85,8 @@ module Inprovise
 end
 
 require_relative './inprovise/logger'
+require_relative './inprovise/cmd_channel'
+require_relative './inprovise/cmd_helper'
 require_relative './inprovise/script'
 require_relative './inprovise/script_index'
 require_relative './inprovise/local_file'

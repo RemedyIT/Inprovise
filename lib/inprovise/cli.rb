@@ -4,6 +4,7 @@
 # License::   Distributes under the same license as Ruby
 
 require 'gli'
+require 'fileutils'
 
 class Inprovise::Cli
 
@@ -36,6 +37,23 @@ class Inprovise::Cli
   require_relative './cli/group'
   require_relative './cli/provision'
 
+  desc 'Initialize Inprovise project.'
+  command :init do |cinit|
+    cinit.action do |global,options,args|
+      raise RuntimeError, 'Cannot initialize existing project directory.' if File.exists?(Inprovise::INFRA_FILE)
+      raise RuntimeError, "Default scheme #{Inprovise.default_scheme} already exists." if File.exists?(Inprovise.default_scheme)
+      begin
+        Inprovise::Infrastructure.init(Inprovise::INFRA_FILE)
+        path = Inprovise::Template.new(File.join(File.dirname(__FILE__),'template','inprovise.rb.erb')).render_to_tempfile
+        FileUtils.mv(path, Inprovise.default_scheme)
+      rescue
+        File.delete(Inprovise::INFRA_FILE) if File.exists?(Inprovise::INFRA_FILE)
+        File.delete(Inprovise.default_scheme) if File.exists?(Inprovise.default_scheme)
+        raise
+      end
+    end
+  end
+
   pre do |global,command,options,args|
     # Pre logic here
     # Return true to proceed; false to abort and not call the
@@ -43,7 +61,14 @@ class Inprovise::Cli
     # Use skips_pre before a command to skip this block
     # on that command only
     Inprovise.verbosity = global[:verbose] || 0
-    Inprovise::Infrastructure.load
+    unless command.name == :init
+      if File.readable?(File.join(Inprovise.root, Inprovise::RC_FILE))
+        Inprovise.log.local("Loading #{Inprovise::RC_FILE}") if Inprovise.verbosity > 1
+        load File.join(Inprovise.root, Inprovise::RC_FILE)
+      end
+
+      Inprovise::Infrastructure.load
+    end
     true
   end
 

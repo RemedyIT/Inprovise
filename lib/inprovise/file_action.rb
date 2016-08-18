@@ -32,7 +32,7 @@ class Inprovise::FileAction
 
   def local_path_for_node(context)
     return local_path(context) if @config[:source]
-    Inprovise::Template.new(context.node, template_path(context)).render_to_tempfile(config: context.config)
+    Inprovise::Template.new(template_path(context), context).render_to_tempfile
   end
 
   def remote_path(context)

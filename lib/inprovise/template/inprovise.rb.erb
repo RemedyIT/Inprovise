@@ -1,0 +1,97 @@
+# Scheme template for Inprovise
+#
+# Author::    Martin Corino
+# License::   Distributes under the same license as Ruby
+
+# include 'another_scheme.rb'
+
+# script 'script' do
+#   action('action1') {  }
+#   action('action2')  { }
+#
+#   apply do
+#
+#   end
+#
+#   revert do
+#
+#   end
+#
+#   validate do
+#
+#   end
+#
+#   file({
+#     :source       => '/local/source/path',        # alternatively provide block returning path string
+#     :destination  => '/remote/destination/path',  # alternatively provide block returning path string
+#     :create_dirs  => true,                        # alternatively provide block returning boolean
+#     :permissions  => 0644,                        # alternatively provide block returning permissions
+#     :group        => 'users',                     # alternatively provide block returning group id
+#     :user         => 'userid'                     # alternatively provide block returning user id
+#   })
+#
+#   file({
+#     :destination  => '/local/source/path',        # alternatively provide block returning path string
+#     :template     => 'local/erb/template/path',   # alternatively provide block returning inline erb template
+#     :create_dir   => true,                        # alternatively provide block returning boolean
+#     :permissions  => 0644,                        # alternatively provide block returning permissions
+#     :group        => 'users',                     # alternatively provide block returning group id
+#     :user         => 'userid'                     # alternatively provide block returning user id
+#   }) { }
+# end
+#
+#
+# All blocks (action,apply,revert,validate,file props,file block) execute in a special context providing the
+# following methods:
+#
+# node                                              current node
+#
+# config                                            current (consolidated, transient) config
+#
+# trigger 'script:action'[,*args]                   runs specified action code blocks
+#
+# run 'command'[, {}]                               execute command on current node over SSH connection
+#                                                   options:
+#                                                     :once => true
+#                                                       run command only once (from whatever script executes it first)
+#                                                     :log => true
+#                                                       force logging SSH commands and output
+#
+# run_local 'command'                               execute command locally
+#
+# log 'msg'                                         log a message
+#
+# sudo 'command'[, {}]                              execute command on current node over SSH connection using 'sudo'
+#                                                   options: see 'run'
+#
+# upload '/from/local/path', '/to/remote/path'      up-/download files using SFTP connection for current node
+# download '/from/remote/path', '/to/local/path'
+#
+# local('/local/path')                              creates a local/remote file object providing the following
+# remote('/remote/path')                            methods:
+#                         .hash                             returns an SHA1 hash as hex string
+#                         .exists?
+#                         .file?
+#                         .directory?
+#                         .content
+#                         .matches?(other_file)
+#                         .copy_to(dest_file)
+#                         .copy_from(src_file)
+#                         .delete!
+#                         .permissions
+#                         .set_permissions
+#                         .user
+#                         .group
+#                         .set_owner('user'[,'group')
+#                         .is_local?
+#
+# mkdir '/remote/path'                              create directory(-ies) on current node
+#
+# binary_exists?('bin-name')
+#
+# template('/local/file')                           creates a template object for the specified (ERB) template file
+#                                                   providing 2 rendering options
+#                         .render(locals ={})                 returns rendered result string
+#                         .render_to_tempfile(locals = {})    returns path of tempfile containing rendered result
+#
+

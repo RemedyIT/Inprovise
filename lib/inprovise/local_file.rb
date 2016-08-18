@@ -5,6 +5,7 @@
 
 require 'digest/sha1'
 require 'fileutils'
+require 'etc'
 
 class Inprovise::LocalFile
   attr_reader :path
@@ -30,6 +31,14 @@ class Inprovise::LocalFile
     File.exists?(@path)
   end
 
+  def directory?
+    File.directory?(path)
+  end
+
+  def file?
+    File.file?(path)
+  end
+
   def content
     return File.read(@path) if exists?
     nil
@@ -49,8 +58,8 @@ class Inprovise::LocalFile
     destination
   end
 
-  def copy_from(destination)
-    destination.copy_to(self)
+  def copy_from(source)
+    source.copy_to(self)
   end
 
   def duplicate(destination)
@@ -59,7 +68,23 @@ class Inprovise::LocalFile
   end
 
   def upload(destination)
-    destination.upload(self)
+    destination = @context.remote(destination) if String === destination
+    if destination.is_local?
+      FileUtils.cp(path, destination.path)
+    else
+      destination.upload(self)
+    end
+    destination
+  end
+
+  def download(source)
+    source = @context.remote(source) if String === source
+    if source.is_local?
+      FileUtils.cp(source.path, path)
+    else
+      source.download(self)
+    end
+    self
   end
 
   def delete!
@@ -79,6 +104,14 @@ class Inprovise::LocalFile
   def set_owner(user, group=nil)
     FileUtils.chown_R(user, group, path)
     self
+  end
+
+  def user
+    Etc.getpwuid(File.stat(path).uid).name
+  end
+
+  def group
+    Etc.getgrgid(File.stat(path).gid).name
   end
 
   def is_local?

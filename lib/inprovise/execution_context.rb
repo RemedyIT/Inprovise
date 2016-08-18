@@ -28,7 +28,7 @@ class Inprovise::ExecutionContext
     return self if user.nil? || user == node.user
     new_node = @node.for_user(user)
     new_log = @log.clone_for_node(new_node)
-    self.class.new(new_node, new_log, @config)
+    self.class.new(new_node, new_log,@index, @config)
   end
 
   def run_local(cmd)
@@ -39,16 +39,20 @@ class Inprovise::ExecutionContext
   end
 
   def run(cmd, opts={})
-    @node.execute(cmd, opts)
+    @node.run(cmd, opts)
+  end
+
+  def sudo(cmd, opts={})
+    @node.sudo(cmd, opts)
+  end
+
+  def env(var)
+    @node.env(var)
   end
 
   def log(msg=nil)
     @log.log(msg) if msg
     @log
-  end
-
-  def sudo(cmd, opts={})
-    @node.sudo(cmd, opts)
   end
 
   def upload(from, to)
@@ -59,20 +63,16 @@ class Inprovise::ExecutionContext
     @node.download(from, to)
   end
 
-  def local(path)
-    Inprovise::LocalFile.new(path)
+  def mkdir(path)
+    @node.mkdir(path)
   end
 
   def remove(path)
-    @node.remove(path)
+    @node.delete(path)
   end
 
-  def stat(path)
-    @node.stat(path)
-  end
-
-  def setstat(path, opts)
-    @node.setstat(path, opts)
+  def local(path)
+    Inprovise::LocalFile.new(path)
   end
 
   def remote(path)
@@ -80,7 +80,7 @@ class Inprovise::ExecutionContext
   end
 
   def template(path)
-    Inprovise::Template.new(@node, path)
+    Inprovise::Template.new(path, self)
   end
 
   def trigger(action_ref, *args)
@@ -92,7 +92,7 @@ class Inprovise::ExecutionContext
   end
 
   def binary_exists?(binary)
-    run("which #{binary}") =~ /\/#{binary}/
+    @node.binary_exists?(binary)
   end
 end
 
@@ -125,15 +125,11 @@ class Inprovise::MockExecutionContext < Inprovise::ExecutionContext
     @log.mock_execute("DOWLOAD: #{from} => #{to}")
   end
 
+  def mkdir(path)
+    @log.mock_execute("MKDIR: #{path}")
+  end
+
   def remove(path)
     @log.mock_execute("REMOVE: #{path}")
-  end
-
-  def stat(path)
-    @log.mock_execute("STAT: #{path}")
-  end
-
-  def setstat(path, opts)
-    @log.mock_execute("SET: #{path} - #{opts.inspect}")
   end
 end

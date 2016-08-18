@@ -57,6 +57,7 @@ class Inprovise::Cli
 
     cnod.default_desc 'List infrastructure nodes'
     cnod.action do |global_options,options,args|
+      $stderr.puts
       $stderr.puts "\tINFRASTRUCTURE NODES"
       $stderr.puts "\t===================="
       $stdout.puts *Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).collect {|n| "\t#{n.to_s}" }
