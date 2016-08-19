@@ -3,8 +3,6 @@
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
 
-require 'net/ssh'
-require 'net/sftp'
 require 'json'
 
 class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
@@ -54,12 +52,12 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   # file management
 
   def upload(from, to)
-    log.sftp("UPLOAD: #{from} => #{to}")
+    log.execute("UPLOAD: #{from} => #{to}")
     helper.upload(from, to)
   end
 
   def download(from, to)
-    log.sftp("DOWLOAD: #{from} => #{to}")
+    log.execute("DOWLOAD: #{from} => #{to}")
     helper.download(from, to)
   end
 
@@ -163,6 +161,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     scfg = config.dup
     scfg.delete :passphrase
     scfg.delete :password
+    scfg.delete :credentials
     scfg
   end
   protected :safe_config

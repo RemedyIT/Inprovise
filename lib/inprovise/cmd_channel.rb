@@ -34,12 +34,6 @@ module Inprovise::CmdChannel
 
   end
 
-  # key management
-
-  def key(keyfile)
-    # noop
-  end
-
   # command execution (MANDATORY)
 
   def run(command, forcelog=false)

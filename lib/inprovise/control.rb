@@ -97,31 +97,23 @@ class Inprovise::Controller
   end
 
   def get_value(v)
-    Module.new { def self.eval(s); binding.eval(s); end }.eval(v) rescue v
-  end
-
-  def run_pubkey_script(node, pubkey_path)
-    script = Inprovise::DSL.script("pubkey-#{node.name}") do
-      apply do
-        local_pubkey = local(pubkey_path)
-        remote_pubkey = "inprovise-upload-#{local_pubkey.hash}"
-        local_pubkey.copy_to(remote(remote_pubkey))
-        unless remote('${HOME}/.ssh').exists?
-          mkdir('${HOME}/.ssh')
-          remote('${HOME}/.ssh').set_permissions(755)
-        end
-        run("cat #{remote_pubkey} >> ${HOME}/.ssh/authorized_keys")
-        remote(remote_pubkey).delete!
-        remote('${HOME}/.ssh/authorized_keys').set_permissions(644)
-      end
+    begin
+      Module.new { def self.eval(s); binding.eval(s); end }.eval(v)
+    rescue Exception
+      v
     end
-    Inprovise::ScriptRunner.new(node, script, true).execute(:apply)
   end
 
   def run_node_cmd(command, options, *names)
     case command
     when :add
       opts = options[:config].inject({ host: options[:address] }) do |rc, cfg|
+        k,v = cfg.split('=')
+        rc.store(k.to_sym, get_value(v))
+        rc
+      end
+      opts[:credentials] = {}
+      options[:credential].inject(opts[:credentials]) do |rc, cfg|
         k,v = cfg.split('=')
         rc.store(k.to_sym, get_value(v))
         rc
@@ -136,13 +128,6 @@ class Inprovise::Controller
         grp = Inprovise::Infrastructure.find(g)
         raise ArgumentError, "Unknown group #{g}" unless grp
         node.add_to(grp)
-      end
-
-      if options[:'public-key']
-        pubkey_path = options[:'public-key']
-        pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
-        raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
-        run_pubkey_script(node, pubkey_path)
       end
     when :remove
       names.each do |name|
@@ -160,6 +145,12 @@ class Inprovise::Controller
         tgt.targets
       end.flatten.uniq
       opts = options[:config].inject({}) do |rc, cfg|
+        k,v = cfg.split('=')
+        rc.store(k.to_sym, get_value(v))
+        rc
+      end
+      opts[:credentials] = {}
+      options[:credential].inject(opts[:credentials]) do |rc, cfg|
         k,v = cfg.split('=')
         rc.store(k.to_sym, get_value(v))
         rc
@@ -193,12 +184,6 @@ class Inprovise::Controller
       grp = Inprovise::Infrastructure.find(g)
       raise ArgumentError, "Unknown group #{g}" unless grp
       tgt.add_to(grp)
-    end
-    if options[:'public-key']
-      pubkey_path = options[:'public-key']
-      pubkey_path = File.expand_path(pubkey_path, Inprovise.root)
-      raise ArgumentError, "Invalid public key file [#{pubkey_path}]" unless File.file?(pubkey_path) && File.readable?(pubkey_path)
-      run_pubkey_script(tgt, pubkey_path)
     end
   end
 

@@ -41,10 +41,6 @@ class Inprovise::Logger
     execute(cmd)
   end
 
-  def sftp(cmd)
-    execute(cmd)
-  end
-
   def log(msg)
     say(msg)
   end

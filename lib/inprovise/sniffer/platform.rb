@@ -3,7 +3,7 @@
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
 
-Inprovise::Sniffer.sniffer('platform') do
+Inprovise::Sniffer.define('platform') do
 
   action('(unknown)') do |attrs|
   end

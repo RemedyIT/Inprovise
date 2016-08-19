@@ -18,18 +18,18 @@ When searching (yet again) for a usable (as in 'easy' and 'intuitive') tool for 
 Chef and Puppet, I finally found the *Orca* tool by Andy Kent (https://github.com/andykent/orca).
 *This* was what I was thinking of!
 
-Unfortunately Andy some time ago deprecated his project and there were some aspects of Orca I did not really like (a major one being the definition of the infrastructure nodes and groups inside the provisioning schemes).
-I really did like the agent-less setup and the simple and elegant structure of the DSL though as well as the fact it was written in one of my favorite programming languages and as Andy's arguments for discontinuing 
-did not apply to us I decided to take up his code and rework it to my ideas.
+Unfortunately Andy some time ago deprecated his project and there were some aspects of Orca I did not really like (a major one being the definition of the infrastructure nodes and groups inside the provisioning schemes) 
+as well as some missing bits (like more flexibility in the platform support).
+I really did like the agent-less setup and the simple and elegant structure of the DSL though as well as the fact it was written in one of my favorite programming languages. As Andy's arguments for discontinuing 
+did not apply to us I decided to take up his code and rework it to my ideas and provide it with a minimum of multi platform support to also be able to manage the non-*nix nodes we needed to provision. 
 
 As Andy indicated the Orca name was (to be) handed over to another gem maintainer and I did not particularly like it anyway (sorry Andy) I renamed the package. Andy's code proved quite resilient to my changes
-though and (apart from the name changes) I was able to copy large chunks more or less verbatim thereby increasing my coding production significantly.
-    
+though and (apart from the name changes) I was able to copy large chunks more or less verbatim and rework those slightly thereby increasing my coding production significantly.
 
 What problem does Inprovise try to solve?
 ------------------------------------
 
-All too often you need to get a new server up and running to a known state so that you can get an app deployed. Before Inprovise there were broadly 4 options...
+All too often you need to get a new server up and running to a known state so that you can get an app deployed. Before Inprovise (and Orca) there were broadly 4 options...
 
 1. Start from scratch and hand install all the packages, files, permissions, etc. yourself over SSH.
 2. Use a deployment tool like Capistrano to codeify your shell scripts into semi-reusable steps.
@@ -45,12 +45,13 @@ Inprovise fills the rather large gap between (2) and (3). It's a bigger gap then
 
 Inprovise fixes these problems by...
 
-- working directly over SSH, all you need is a box that you can connect to
+- working directly over standardized protocols (SSH by default), all you need is a box that you can connect to
 - Inprovise maintains a simple (JSON) file based registry of your infrastructure  
 - scripting definitions can all go in a single file (although Inprovise supports modularization) and most servers can be configured in ~50 lines
 - scripts are defined in a ruby based DSL that consists of a very small number of basic commands to learn
-- Inprovise makes no assumptions about the underlying OS except to assume it supports SSH
-- Inprovise is extensible and adding platform specific features like package manger support can be achieved in a dozen or so lines.
+- Inprovise only requires a minimum operations (for cmd execution and file management) to be supported for any OS the details of which are abstracted through configurable handlers
+- apart from the protocol and minimal operation set Inprovise makes no assumptions about the underlying OS
+- Inprovise is extensible and adding platform specific features like package manager support can be achieved in a small amount of code using the core support 
 
 
 What problems is Inprovise avoiding?
@@ -63,7 +64,7 @@ Inprovise doesn't...
 
 - try to scale beyond a smallish (2-100) number of nodes
 - have any algorithms that attempt to run periodically and converge divergent configurations
-- abstract the differences of different host OSes
+- fully abstract the differences of different host OSes (in particular specific system support options and package management)
 - provide a server to supervise infrastructure configuration
 
 
@@ -168,19 +169,22 @@ A more complete WIP example can be found in this gist... https://gist.github.com
       end
     end
 
+Configuration
+-------------
 
+The `rig` CLI tool loads a file named 'rigrc' at startup if available in the root of your project (where the 'infra.json' is located). This file is assumed
+to contain pure Ruby code and is loaded as such. You can use this to require and setup any libraries, extensions etc. you want to be available to your
+scripts defined in your project's scheme files.
+
+As the scheme files themselves are also pure Ruby code you can also put configuration code there if that suites your use case better (for example if certain settings
+should only be available to scripts defined in one particular scheme file).  
 
 Extensions
 ----------
 
-The core of Inprovise doesn't have any platform specific logic but is designed to be a foundation to build apon. 
-Extensions can be written in their own files, projects or gems, simply `require 'orca'` and then use the `Inprovise.extension` helper.
+The core of Inprovise only provides a minimum of platform specific logic but is designed to be a foundation to build apon.
+Basically the core currently supports using the SSH(+SFTP) protocol and provides operation handlers for `linux` and `cygwin` type OS environments.
 
-Some example extensions are included in this repo and can be required into your orca.rb file if you need them...
-
-`require "orca/extensions/apt"` - Adds support for specifying aptitude dependancies with the `apt_package` helper.
-
-`relative "orca/extensions/file_sync"` - Adds support for syncing and converging local/remove files with the `file` action.
-
-*Note: these extensions are likely to be removed to their own 'contrib' project at some point in the future*
+Extensions can be written in their own files, projects or gems and loaded through the `rigrc` config file or any of your project's scheme files.
+As these files are all pure Ruby code you can use 'require' statements and/or any other valid Ruby code to initialize your extensions.
 

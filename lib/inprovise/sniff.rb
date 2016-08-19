@@ -22,7 +22,7 @@ module Inprovise::Sniffer
     end
     private :add_sniffer
 
-    def sniffer(name, &definition)
+    def define(name, &definition)
       script = add_sniffer("sniff[#{name}]", &definition)
       sniffers.get(ROOT_SCRIPT).triggers(script.name)
     end
