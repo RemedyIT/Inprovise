@@ -37,7 +37,7 @@ Inprovise::CmdHelper.define('windows') do
     end
   end
 
-  def hash(path)
+  def hash_for(path)
     Digest::SHA1.hexdigest(cat(path))
   end
 

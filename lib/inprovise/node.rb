@@ -75,8 +75,8 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     helper.cat(path)
   end
 
-  def hash(path)
-    helper.hash(path)
+  def hash_for(path)
+    helper.hash_for(path)
   end
 
   def mkdir(path)

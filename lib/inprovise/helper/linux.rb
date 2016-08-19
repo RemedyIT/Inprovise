@@ -41,7 +41,7 @@ Inprovise::CmdHelper.define('linux') do
     end
   end
 
-  def hash(path)
+  def hash_for(path)
     exec("sha1sum #{path}")[0...40]
   end
 

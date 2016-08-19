@@ -19,7 +19,7 @@ class Inprovise::RemoteFile
 
   def hash
     return nil unless exists?
-    @hash ||= @context.node.hash(path)
+    @hash ||= @context.node.hash_for(path)
   end
 
   def exists?
@@ -64,7 +64,7 @@ class Inprovise::RemoteFile
 
   def download(destination)
     if String === destination || destination.is_local?
-      @context.node.download(path, String === destination ? destination : destination.path)
+      @context.download(path, String === destination ? destination : destination.path)
     else
       @context.node.copy(path, destination.path)
     end
@@ -73,7 +73,7 @@ class Inprovise::RemoteFile
 
   def upload(source)
     if String === source || source.is_local?
-      @context.node.upload(String === source ? source : source.path, path)
+      @context.upload(String === source ? source : source.path, path)
     else
       @context.node.copy(source.path, path)
     end

@@ -84,7 +84,7 @@ module Inprovise::CmdHelper
     nil
   end
 
-  def hash(path)
+  def hash_for(path)
     nil
   end
 
