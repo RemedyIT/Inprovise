@@ -22,9 +22,10 @@ module Inprovise::Sniffer
     end
     private :add_sniffer
 
-    def define(name, &definition)
+    def define(name, auto_trigger=true, &definition)
       script = add_sniffer("sniff[#{name}]", &definition)
-      sniffers.get(ROOT_SCRIPT).triggers(script.name)
+      sniffers.get(ROOT_SCRIPT).triggers(script.name) if auto_trigger
+      script
     end
 
     def run_sniffers_for(node)

@@ -88,7 +88,12 @@ class Inprovise::ExecutionContext
     pkg = @index.get(pkg_name)
     action = pkg.actions[action_name]
     raise Inprovise::MissingActionError.new(action_ref) unless action
-    instance_exec(*args, &action)
+    curtask = @node.log.set_task(action_ref)
+    begin
+      instance_exec(*args, &action)
+    ensure
+      @node.log.set_task(curtask)
+    end
   end
 
   def binary_exists?(binary)

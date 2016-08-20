@@ -154,7 +154,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def to_s
-    "Node:#{name}(#{user}@#{host})"
+    "#{name}(#{user}@#{host})"
   end
 
   def safe_config

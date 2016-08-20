@@ -18,7 +18,9 @@ class Inprovise::Logger
   end
 
   def set_task(task)
+    oldtask = @task
     @task = task.to_s
+    oldtask
   end
 
   def command(msg)
