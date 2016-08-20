@@ -55,13 +55,40 @@ class Inprovise::Cli
       end
     end
 
-    cnod.default_desc 'List infrastructure nodes'
-    cnod.action do |global_options,options,args|
-      $stderr.puts
-      $stderr.puts "\tINFRASTRUCTURE NODES"
-      $stderr.puts "\t===================="
-      $stdout.puts *Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).collect {|n| "\t#{n.to_s}" }
+    cnod.desc 'List infrastructure nodes (all or for specified nodes/groups)'
+    cnod.arg_name '[NAME[ NAME [...]]]'
+    cnod.command :list do |cnod_list|
+      cnod_list.switch [:d, :details], negatable: false, :desc => 'Show node details'
+
+      cnod_list.action do |global_options,options,args|
+        $stdout.puts
+        $stdout.puts "\tINFRASTRUCTURE NODES"
+        $stdout.puts "\t===================="
+        if args.empty?
+          Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).each do |n|
+            Inprovise::Cli.show_target(n, options[:details])
+          end
+        else
+          args.each do |a|
+            tgt = Inprovise::Infrastructure.find(a)
+            case tgt
+              when Inprovise::Infrastructure::Node
+                Inprovise::Cli.show_target(tgt, options[:details])
+              when Inprovise::Infrastructure::Group
+                $stdout.puts "\t#{tgt.to_s}"
+                $stdout.puts "\t#{'-' * tgt.to_s.size}"
+                tgt.targets.each {|n| Inprovise::Cli.show_target(n, options[:details]) }
+                $stdout.puts "\t#{'-' * tgt.to_s.size}"
+              else
+                $stdout.puts "ERROR: #{a} is unknown".red
+            end
+          end
+        end
+        $stdout.puts
+      end
     end
+
+    cnod.default_command :list
 
   end
 

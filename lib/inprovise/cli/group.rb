@@ -50,12 +50,36 @@ class Inprovise::Cli
       end
     end
 
-    cgrp.default_desc 'List infrastructure groups'
-    cgrp.action do |global_options,options,args|
-      $stderr.puts "\tINFRASTRUCTURE GROUPS"
-      $stderr.puts "\t====================="
-      $stdout.puts *Inprovise::Infrastructure.list(Inprovise::Infrastructure::Group).collect {|n| "\t#{n.to_s}" }
+    cgrp.desc 'List infrastructure groups (all or specified group(s))'
+    cgrp.arg_name '[GROUP[ GROUP [...]]]'
+    cgrp.command :list do |cgrp_list|
+      cgrp_list.switch [:d, :details], negatable: false, :desc => 'Show group details'
+
+      cgrp_list.action do |global_options,options,args|
+        $stdout.puts "\tINFRASTRUCTURE GROUPS"
+        $stdout.puts "\t====================="
+        if args.empty?
+          Inprovise::Infrastructure.list(Inprovise::Infrastructure::Group).each do |g|
+            Inprovise::Cli.show_target(g, options[:details])
+          end
+        else
+          args.each do |a|
+            tgt = Inprovise::Infrastructure.find(a)
+            case tgt
+              when Inprovise::Infrastructure::Node
+                $stdout.puts "ERROR: #{a} is not a group".red
+              when Inprovise::Infrastructure::Group
+                Inprovise::Cli.show_target(tgt, options[:details])
+              else
+                $stdout.puts "ERROR: #{a} is unknown".red
+            end
+          end
+        end
+        $stdout.puts
+      end
     end
+
+    cgrp.default_command :list
 
   end
 

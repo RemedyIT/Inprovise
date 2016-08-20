@@ -88,4 +88,11 @@ class Inprovise::Cli
     exit 1
   end
 
+  def self.show_target(tgt, details=false)
+    $stdout.puts "\t#{tgt.to_s}"
+    if details
+      $stdout.puts "\t\t"+JSON.pretty_generate(tgt.config).split("\n").join("\n\t\t")
+    end
+  end
+
 end
