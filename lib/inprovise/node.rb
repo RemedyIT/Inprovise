@@ -124,7 +124,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def binary_exists?(bin)
-    helper.binary_exists?(path)
+    helper.binary_exists?(bin)
   end
 
   def log

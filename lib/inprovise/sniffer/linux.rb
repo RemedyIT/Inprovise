@@ -14,7 +14,7 @@ Inprovise::Sniffer.define('linux', false) do
     elsif remote('/etc/SuSE-release').exists?
       trigger 'sniff[linux]:suse-release', attrs
     end
-    attrs[:pkgman] = case attrs[:os]
+    attrs[:pkgman] = case attrs[:'os-distro']
                      when 'fedora', 'centos', 'rhel'
                        binary_exists?('dnf') ? 'dnf' : 'yum'
                      when /suse/
