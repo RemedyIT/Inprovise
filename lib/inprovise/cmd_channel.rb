@@ -34,6 +34,12 @@ module Inprovise::CmdChannel
 
   end
 
+  # session management
+
+  def close
+    # noop
+  end
+
   # command execution (MANDATORY)
 
   def run(command, forcelog=false)

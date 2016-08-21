@@ -9,7 +9,7 @@ Inprovise::Sniffer.define('windows', false) do
     attrs[:machine] = env('PROCESSOR_ARCHITECTURE').chomp =~ /amd64/i ? 'x86_64' : 'x86'
     osver = run('cmd /c ver').strip
     if /\[version\s+(\d+)\.(\d+)\.(\d+)\]/i =~ osver
-      attrs[:'os-version'] = case $1
+      attrs[:os_version] = case $1
                                when '5'
                                'xp'
                                when '6'

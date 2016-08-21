@@ -34,7 +34,7 @@ class Inprovise::ScriptRunner
     Inprovise.log.local("#{COMMANDS[command_name].first} #{script.name} #{COMMANDS[command_name].last} #{@node.to_s}")
     scrs = scripts
     scrs.reverse! if command_name.to_sym == :revert
-    @log.say scrs.map(&:name).join(', ').yellow
+    @log.say scrs.map(&:name).join(', ').yellow if Inprovise.verbosity > 0
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     scrs.each do |script|
       send(:"execute_#{command_name}", script, context)
@@ -89,7 +89,7 @@ class Inprovise::ScriptRunner
     context = context.for_user(script.user) if script.user
     context.log.set_task(script)
     context.log.command(command_name)
-    cmds.map {|cmd| context.apply(cmd) }
+    cmds.map {|cmd| context.exec(cmd) }
   end
 
   class ValidationFailureError < StandardError

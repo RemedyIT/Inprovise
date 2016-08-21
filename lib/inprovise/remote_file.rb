@@ -58,7 +58,7 @@ class Inprovise::RemoteFile
   end
 
   def duplicate(destination)
-    @context.node.copy(path, destination.path)
+    @context.copy(path, destination.path)
     destination
   end
 
@@ -66,7 +66,7 @@ class Inprovise::RemoteFile
     if String === destination || destination.is_local?
       @context.download(path, String === destination ? destination : destination.path)
     else
-      @context.node.copy(path, destination.path)
+      @context.copy(path, destination.path)
     end
     String === destination ? @context.local(destination) : destination
   end
@@ -75,19 +75,19 @@ class Inprovise::RemoteFile
     if String === source || source.is_local?
       @context.upload(String === source ? source : source.path, path)
     else
-      @context.node.copy(source.path, path)
+      @context.copy(source.path, path)
     end
     self
   end
 
   def delete!
-    @context.node.delete(path) if exists?
+    @context.remove(path) if exists?
     invalidate!
     self
   end
 
   def set_permissions(mask)
-    @context.node.set_permissions(path, mask)
+    @context.set_permissions(path, mask)
     invalidate!
     self
   end
@@ -97,7 +97,8 @@ class Inprovise::RemoteFile
   end
 
   def set_owner(user, group=nil)
-    @context.node.set_owner(path, user, group)
+    user ||= owner[:user]
+    @context.set_owner(path, user, group)
     invalidate!
     self
   end

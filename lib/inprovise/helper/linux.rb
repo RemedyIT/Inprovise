@@ -7,7 +7,7 @@ Inprovise::CmdHelper.define('linux') do
 
   def initialize(channel, sudo=false)
     super(channel)
-    @exec = sudo ? :sudo_run : :run
+    @exec = sudo ? :sudo_run : :plain_run
   end
 
   # platform properties
@@ -21,6 +21,10 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   # generic command execution
+
+  def run(cmd, forcelog=false)
+    exec(cmd, forcelog)
+  end
 
   def sudo
     return self if @exec == :sudo_run
@@ -128,8 +132,12 @@ Inprovise::CmdHelper.define('linux') do
     send(@exec, cmd, forcelog)
   end
 
+  def plain_run(cmd, forcelog=false)
+    @channel.run(cmd, forcelog)
+  end
+
   def sudo_run(cmd, forcelog=false)
-    run("sudo #{cmd}", forcelog)
+    @channel.run("sudo #{cmd}", forcelog)
   end
 
 end

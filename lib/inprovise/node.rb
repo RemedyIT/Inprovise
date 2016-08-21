@@ -18,10 +18,6 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     super(name, config)
   end
 
-  def method_missing(meth, *args)
-    get(meth)
-  end
-
   def channel
     @channel ||= Inprovise::CmdChannel.open(self, config[:channel])
   end
@@ -33,6 +29,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   # generic command execution
 
   def run(cmd, opts={})
+    log.execute("RUN: #{cmd}") if Inprovise.verbosity > 0
     if should_run?(cmd, opts)
       really_run(cmd, opts)
     else
@@ -41,6 +38,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def sudo(cmd, opts={})
+    log.execute("SUDO: #{cmd}") if Inprovise.verbosity > 0
     opts = opts.merge({:sudo => true})
     if should_run?(cmd, opts)
       really_run(cmd, opts)
@@ -52,79 +50,117 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   # file management
 
   def upload(from, to)
-    log.execute("UPLOAD: #{from} => #{to}")
+    log.execute("UPLOAD: #{from} => #{to}") if Inprovise.verbosity > 0
     helper.upload(from, to)
   end
 
   def download(from, to)
-    log.execute("DOWLOAD: #{from} => #{to}")
+    log.execute("DOWLOAD: #{to} <= #{from}") if Inprovise.verbosity > 0
     helper.download(from, to)
   end
 
   # basic commands
 
   def echo(arg)
-    helper.echo(arg)
+    log.execute("ECHO: #{arg}") if Inprovise.verbosity > 0
+    out = helper.echo(arg)
+    log.execute("ECHO: #{out}") if Inprovise.verbosity > 0
+    out
   end
 
   def env(var)
-    helper.env(var)
+    log.execute("ENV: #{var}") if Inprovise.verbosity > 0
+    val = helper.env(var)
+    log.execute("ENV: #{val}") if Inprovise.verbosity > 0
+    val
   end
 
   def cat(path)
-    helper.cat(path)
+    log.execute("CAT: #{path}") if Inprovise.verbosity > 0
+    out = helper.cat(path)
+    log.execute("CAT: #{out}") if Inprovise.verbosity > 0
+    out
   end
 
   def hash_for(path)
-    helper.hash_for(path)
+    log.execute("HASH_FOR: #{path}") if Inprovise.verbosity > 0
+    hsh = helper.hash_for(path)
+    log.execute("HASH_FOR: #{hsh}") if Inprovise.verbosity > 0
+    hsh
   end
 
   def mkdir(path)
+    log.execute("MKDIR: #{path}") if Inprovise.verbosity > 0
     helper.mkdir(path)
   end
 
   def exists?(path)
-    helper.exists?(path)
+    log.execute("EXISTS?: #{path}") if Inprovise.verbosity > 0
+    rc = helper.exists?(path)
+    log.execute("EXISTS?: #{rc}") if Inprovise.verbosity > 0
+    rc
   end
 
   def file?(path)
-    helper.file?(path)
+    log.execute("FILE?: #{path}") if Inprovise.verbosity > 0
+    rc = helper.file?(path)
+    log.execute("FILE?: #{rc}") if Inprovise.verbosity > 0
+    rc
   end
 
   def directory?(path)
-    helper.directory?(path)
+    log.execute("DIRECTORY?: #{path}") if Inprovise.verbosity > 0
+    rc = helper.directory?(path)
+    log.execute("DIRECTORY?: #{rc}") if Inprovise.verbosity > 0
+    rc
   end
 
   def copy(from, to)
+    log.execute("COPY: #{from} #{to}") if Inprovise.verbosity > 0
     helper.copy(from, to)
   end
 
   def delete(path)
+    log.execute("DELETE: #{path}") if Inprovise.verbosity > 0
     helper.delete(path)
   end
 
   def permissions(path)
-    helper.permissions(path)
+    log.execute("PERMISSIONS: #{path}") if Inprovise.verbosity > 0
+    perm = helper.permissions(path)
+    log.execute("PERMISSIONS: #{'%o' % perm}") if Inprovise.verbosity > 0
+    perm
   end
 
   def set_permissions(path, perm)
+    log.execute("SET_PERMISSIONS: #{path} #{'%o' % perm}") if Inprovise.verbosity > 0
     helper.set_permissions(path, perm)
   end
 
   def owner(path)
-    helper.owner(path)
+    log.execute("OWNER: #{path}") if Inprovise.verbosity > 0
+    owner = helper.owner(path)
+    log.execute("OWNER: #{owner}") if Inprovise.verbosity > 0
+    owner
   end
 
   def group(path)
-    helper.group(path)
+    log.execute("GROUP: #{path}") if Inprovise.verbosity > 0
+    group = helper.group(path)
+    log.execute("OWNER: #{group}") if Inprovise.verbosity > 0
+    group
   end
 
   def set_owner(path, user, group=nil)
-    helper.set_owner(path, user, group=nil)
+    log.execute("SET_OWNER: #{path} #{user}#{group ? " #{group}" : ''}") if Inprovise.verbosity > 0
+    helper.set_owner(path, user, group)
   end
 
   def binary_exists?(bin)
-    helper.binary_exists?(bin)
+    log.execute("BINARY_EXISTS?: #{bin}") if Inprovise.verbosity > 0
+    rc = helper.binary_exists?(bin)
+    log.execute("BINARY_EXISTS?: #{rc}") if Inprovise.verbosity > 0
+    rc
   end
 
   def log
@@ -190,7 +226,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def really_run(cmd, opts={})
-    exec = opts[:sudo] ? helper : helper.sudo
+    exec = opts[:sudo] ? helper.sudo : helper
     cmd = prefixed_command(cmd)
     begin
       output = exec.run(cmd, opts[:log])

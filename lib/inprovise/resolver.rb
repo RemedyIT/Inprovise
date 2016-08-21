@@ -30,13 +30,22 @@ class Inprovise::Resolver
   def add_children
     @scripts = @scripts.reduce([]) do |arr, script|
       arr << script
-      script.children.each do |child_name|
-        child = @index.get(child_name)
-        arr << child unless arr.include?(child)
-      end
+      add_script_children(script, arr)
       arr
     end
   end
+  private :add_children
+
+  def add_script_children(script, arr)
+    script.children.each do |child_name|
+      child = @index.get(child_name)
+      unless arr.include?(child)
+        arr << child
+        add_script_children(child, arr)
+      end
+    end
+  end
+  private :add_script_children
 
   class CircularDependencyError < StandardError
     def initialize

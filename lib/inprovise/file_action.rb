@@ -55,28 +55,32 @@ class Inprovise::FileAction
     value_for context, (@config[:create_dir] || @config[:create_dirs])
   end
 
-  def script_name(suffix)
-    name = @config[:name]
-    if name.nil? && !@config[:destination].is_a?(String)
-      raise ArgumentError, 'You must provide a :name option unless :destination is a String'
-    end
-    name ||= @config[:destination]
-    "file-#{suffix}[#{name}]"
-  end
-
   def configure
-    fs = self
-    add_content_script
-    add_permissions_script unless @config[:permissions].nil? and @config[:user].nil? and @config[:group].nil?
+    parent = add_script(@script) do
+      apply do
+      end
+    end
+    add_content_script(parent)
+    add_permissions_script(parent) unless @config[:permissions].nil? and @config[:user].nil? and @config[:group].nil?
+    add_after_apply_script(parent) if @after_apply
   end
 
   def run_after_apply(context)
-    context.instance_eval(&@after_apply) if @after_apply
+    context.as(nil, &@after_apply) if @after_apply
   end
 
-  def add_content_script
+  def add_after_apply_script(parent)
     fa = self
-    add_script('content') do
+    add_script(parent, '-after') do
+      apply do
+        fa.run_after_apply(self)
+      end
+    end
+  end
+
+  def add_content_script(parent)
+    fa = self
+    add_script(parent, '-content') do
       apply do
         if fa.create_dir(self)
           mk_dir = fa.create_dir(self) == true ? File.dirname(fa.remote_path(self)) : fa.create_dir(self)
@@ -87,7 +91,7 @@ class Inprovise::FileAction
         tmp_path = "inprovise-tmp-#{local_file.hash}"
         local_file.copy_to(remote(tmp_path))
         sudo("mv #{tmp_path} #{fa.remote_path(self)}")
-        fa.run_after_apply(self)
+        #fa.run_after_apply(self)
       end
 
       revert do
@@ -100,13 +104,13 @@ class Inprovise::FileAction
     end
   end
 
-  def add_permissions_script
+  def add_permissions_script(parent)
     fa = self
-    add_script('permissions') do
+    add_script(parent, '-permissions') do
       apply do
         remote(fa.remote_path(self)).set_owner(fa.user(self), fa.group(self)) unless fa.user(self).nil? and fa.group(self).nil?
         remote(fa.remote_path(self)).set_permissions(fa.permissions(self)) unless fa.permissions(self).nil?
-        fa.run_after_apply(self)
+        #fa.run_after_apply(self)
       end
 
       validate do
@@ -119,9 +123,18 @@ class Inprovise::FileAction
     end
   end
 
-  def add_script(suffix, &definition)
+  def script_name(suffix)
+    name = @config[:name]
+    if name.nil? && !@config[:destination].is_a?(String)
+      raise ArgumentError, 'You must provide a :name option unless :destination is a String'
+    end
+    name ||= @config[:destination]
+    "file#{suffix}[#{name}]"
+  end
+
+  def add_script(parent, suffix=nil, &definition)
     script = Inprovise::DSL.script(script_name(suffix), &definition)
-    @script.triggers(script.name)
+    parent.triggers(script.name)
     script
   end
 

@@ -19,6 +19,10 @@ Inprovise::CmdChannel.define('ssh') do
     end
   end
 
+  def close
+    disconnect
+  end
+
   # command execution
 
   def run(command, forcelog=false)
@@ -28,22 +32,20 @@ Inprovise::CmdChannel.define('ssh') do
   # file management
 
   def upload(from, to)
-    @node.log.execute("UPLOAD: #{from} => #{to}") if Inprovise.verbosity > 0
     sftp.upload!(from, to)
   end
 
   def download(from, to)
-    @node.log.execute("DOWNLOAD: #{from} => #{to}") if Inprovise.verbosity > 0
     sftp.download!(from, to)
   end
 
   def mkdir(path)
-    @node.log.execute("MKDIR: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.MKDIR: #{path}") if Inprovise.verbosity > 1
     sftp.mkdir!(path)
   end
 
   def exists?(path)
-    @node.log.execute("EXISTS?: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.EXISTS?: #{path}") if Inprovise.verbosity > 1
     begin
       sftp.stat!(path) != nil
     rescue Net::SFTP::StatusException => ex
@@ -53,7 +55,7 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def file?(path)
-    @node.log.execute("FILE?: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.FILE?: #{path}") if Inprovise.verbosity > 1
     begin
       sftp.stat!(path).symbolic_type == :regular
     rescue Net::SFTP::StatusException => ex
@@ -63,7 +65,7 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def directory?(path)
-    @node.log.execute("DIRECTORY?: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.DIRECTORY?: #{path}") if Inprovise.verbosity > 1
     begin
       sftp.stat!(path).symbolic_type == :directory
     rescue Net::SFTP::StatusException => ex
@@ -73,21 +75,21 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def content(path)
-    @node.log.execute("READ: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.READ: #{path}") if Inprovise.verbosity > 1
     sftp.file.open(path) do |io|
       return io.read
     end
   end
 
   def delete(path)
-    @node.log.execute("DELETE: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.DELETE: #{path}") if Inprovise.verbosity > 1
     sftp.delete!(path) if exists?(path)
   end
 
   def permissions(path)
-    @node.log.execute("PERMISSIONS: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.PERMISSIONS: #{path}") if Inprovise.verbosity > 1
     begin
-      sftp.stat!(path).permissions == 0x0FFF
+      sftp.stat!(path).permissions & 0x0FFF
     rescue Net::SFTP::StatusException => ex
       raise ex unless ex.code == Net::SFTP::Response::FX_NO_SUCH_FILE
       0
@@ -95,12 +97,12 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def set_permissions(path, perm)
-    @node.log.execute("SETPERMISSIONS: #{path} #{perm}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.SETPERMISSIONS: #{path} #{'%o' % perm}") if Inprovise.verbosity > 1
     sftp.setstat!(path, :permissions => perm)
   end
 
   def owner(path)
-    @node.log.execute("OWNER: #{path}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.OWNER: #{path}") if Inprovise.verbosity > 1
     begin
       result = sftp.stat!(path)
       {:user => result.owner, :group => result.group}
@@ -111,7 +113,7 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def set_owner(path, user, group=nil)
-    @node.log.execute("SET_OWNER: #{path} #{user} #{group}") if Inprovise.verbosity > 0
+    @node.log.remote("SFTP.SET_OWNER: #{path} #{user} #{group}") if Inprovise.verbosity > 1
     attrs = { :owner => user }
     attrs.merge({ :group => group }) if group
     sftp.setstat!(path, attrs)
@@ -144,7 +146,7 @@ Inprovise::CmdChannel.define('ssh') do
         set_permissions('./.ssh', 755)
       end
       begin
-        @node.log.execute("APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
+        @node.log.remote("APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
         sftp.file.open('./.ssh/authorized_keys', 'a') do |f|
           f.puts File.read(pubkey_path)
         end
@@ -162,7 +164,7 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
   def execute(cmd, forcelog=false)
-    @node.log.execute(cmd.cyan) if Inprovise.verbosity > 0 || forcelog
+    @node.log.remote("SSH: #{cmd}") if Inprovise.verbosity > 1 || forcelog
     output = ''
     connection.exec! cmd do |channel, stream, data|
       output << data if stream == :stdout

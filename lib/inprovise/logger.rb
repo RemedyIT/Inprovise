@@ -28,7 +28,7 @@ class Inprovise::Logger
   end
 
   def local(cmd)
-    say(cmd, :cyan)
+    say(cmd, :bold)
   end
 
   def execute(cmd)
@@ -41,6 +41,10 @@ class Inprovise::Logger
 
   def cached(cmd)
     execute(cmd)
+  end
+
+  def remote(cmd)
+    say(cmd, :blue)
   end
 
   def log(msg)

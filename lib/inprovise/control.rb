@@ -37,7 +37,7 @@ class Inprovise::Controller
   def cleanup
     return if @targets.empty?
     Inprovise.log.local('Disconnecting...') if Inprovise.verbosity > 0
-    @targets.each(&:disconnect)
+    @targets.each {|tgt| tgt.channel.close }
     Inprovise.log.local('Done!') if Inprovise.verbosity > 0
   end
 
@@ -171,6 +171,8 @@ class Inprovise::Controller
     if options[:reset]
       # preserve :host
       tgt_opts[:host] = tgt.get(:host) if tgt.get(:host)
+      # preserve :user if no new user specified
+      tgt_opts[:user] = tgt.get(:user) if tgt.get(:user) && !tgt_opts.has_key?(:user)
       # preserve sniffed attributes when not running sniffers now
       unless options[:sniff]
         tgt_opts[:attributes] = tgt.get(:attributes)
@@ -179,6 +181,8 @@ class Inprovise::Controller
       tgt.config.clear
     end
     tgt.config.merge!(tgt_opts) # merge new + preserved config
+    # force update of user if specified
+    tgt.prepare_connection_for_user!(tgt_opts[:user]) if tgt_opts[:user]
     Inprovise::Sniffer.run_sniffers_for(tgt) if options[:sniff]
     options[:group].each do |g|
       grp = Inprovise::Infrastructure.find(g)

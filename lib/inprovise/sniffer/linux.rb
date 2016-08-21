@@ -14,7 +14,7 @@ Inprovise::Sniffer.define('linux', false) do
     elsif remote('/etc/SuSE-release').exists?
       trigger 'sniff[linux]:suse-release', attrs
     end
-    attrs[:pkgman] = case attrs[:'os-distro']
+    attrs[:pkgman] = case attrs[:os_distro]
                      when 'fedora', 'centos', 'rhel'
                        binary_exists?('dnf') ? 'dnf' : 'yum'
                      when /suse/
@@ -31,13 +31,13 @@ Inprovise::Sniffer.define('linux', false) do
       end
       hash
     end
-    attrs[:'os-distro'] = vars['ID'].downcase
-    attrs[:'os-version'] = vars['VERSION_ID']
-    if attrs[:'os-distro'] == 'centos' && remote('/etc/centos-release').exists?
+    attrs[:os_distro] = vars['ID'].downcase
+    attrs[:os_version] = vars['VERSION_ID']
+    if attrs[:os_distro] == 'centos' && remote('/etc/centos-release').exists?
       data = remote('/etc/centos-release').content.split("\n").collect {|l| l.strip }
       data.each do |line|
         if line =~ /\s+release\s+(\d+)\.(\d+).*/
-          attrs[:'os-version'] = "#{$1}.#{$2}"
+          attrs[:os_version] = "#{$1}.#{$2}"
         end
       end
     end
@@ -47,9 +47,9 @@ Inprovise::Sniffer.define('linux', false) do
     data = remote('/etc/redhat-release').content.split("\n").collect {|l| l.strip }
     data.each do |line|
       if line =~ /\A(.+)\s+release\s+(\d+)(\.(\d+))?/
-        attrs[:'os-version'] = "#{$2}.#{$4 || '0'}"
+        attrs[:os_version] = "#{$2}.#{$4 || '0'}"
         tmpos = $1.strip.downcase
-        attrs[:'os-distro'] = case tmpos
+        attrs[:os_distro] = case tmpos
                               when /fedora/
                                 'fedora'
                               when /red\s+hat/
