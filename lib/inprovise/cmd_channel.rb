@@ -34,6 +34,10 @@ module Inprovise::CmdChannel
 
   end
 
+  def initialize(node)
+    @node = node
+  end
+
   # session management
 
   def close

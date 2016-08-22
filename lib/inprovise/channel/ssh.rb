@@ -10,7 +10,7 @@ require 'digest/sha1'
 Inprovise::CmdChannel.define('ssh') do
 
   def initialize(node, user=nil)
-    @node = node
+    super(node)
     @user = user || node.user
     @connection = nil
     @sftp = nil

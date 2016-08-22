@@ -49,7 +49,7 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.exists?(path)
     rescue
-      run(%{if [ -f #{path} ]; then echo "true"; else echo "false"; fi}).strip == 'true'
+      run(%{if exist #{path} ] (echo true) else (echo false)}).strip == 'true'
     end
   end
 
@@ -57,7 +57,7 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.file?(path)
     rescue
-      (run("stat --format=%f #{path}").chomp.hex & 0x8000) == 0x8000
+      !run("for %p in (#{path}) do echo %~ap-").chomp.start_with?('d')
     end
   end
 
@@ -65,19 +65,19 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.file?(path)
     rescue
-      (run("stat --format=%f #{path}").chomp.hex & 0x4000) == 0x4000
+      run("for %p in (#{path}) do echo %~ap-").chomp.start_with?('d')
     end
   end
 
   def copy(from, to)
-    run("cp #{from} #{to}")
+    run("copy #{from} #{to}")
   end
 
   def delete(path)
     begin
       @channel.delete(path)
     rescue
-      run("rm #{path}")
+      run("del #{path}")
     end
   end
 
@@ -85,7 +85,8 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.permissions(path)
     rescue
-      run("stat --format=%a #{path}").strip.to_i(8)
+      # not implemented yet
+      0
     end
   end
 
@@ -93,7 +94,7 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.set_permissions(path, perm)
     rescue
-      run("chmod -R #{sprintf("%o",perm)} #{path}")
+      # not implemented yet
     end
   end
 
@@ -101,8 +102,8 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.owner(path)
     rescue
-      user, group = run("stat --format=%U:%G #{path}").chomp.split(":")
-      {:user => user, :group => group}
+      # not implemented yet
+      {:user => nil, :group => nil}
     end
   end
 
@@ -110,12 +111,12 @@ Inprovise::CmdHelper.define('windows') do
     begin
       @channel.set_owner(path, user, group)
     rescue
-      run(%{chown -R #{user}#{group ? ":#{group}" : ''} #{path}})
+      # not implemented yet
     end
   end
 
   def binary_exists?(bin)
-    run("which #{bin}") =~ /\/#{bin}/
+    run(%{for %p in (#{bin}) do (if exist "%~$PATH:p" echo %~$PATH:p)}).chomp =~ /#{bin}/
   end
 
 end
