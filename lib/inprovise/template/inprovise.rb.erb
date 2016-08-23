@@ -67,6 +67,8 @@
 # sudo 'command'[, {}]                              execute command on current node over SSH connection using 'sudo'
 #                                                   options: see 'run'
 #
+# env 'var'                                         returns value of environment variable on current node
+#
 # upload '/from/local/path', '/to/remote/path'      up-/download files using SFTP connection for current node
 # download '/from/remote/path', '/to/local/path'
 #
@@ -85,7 +87,7 @@
 #                         .set_permissions
 #                         .user
 #                         .group
-#                         .set_owner('user'[,'group')
+#                         .set_owner('user'[,'group'])
 #                         .is_local?
 #
 # mkdir '/remote/path'                              create directory(-ies) on current node

@@ -37,7 +37,7 @@ class Inprovise::Controller
   def cleanup
     return if @targets.empty?
     Inprovise.log.local('Disconnecting...') if Inprovise.verbosity > 0
-    @targets.each {|tgt| tgt.channel.close }
+    @targets.each {|tgt| tgt.disconnect! }
     Inprovise.log.local('Done!') if Inprovise.verbosity > 0
   end
 

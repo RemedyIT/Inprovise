@@ -26,6 +26,12 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     @helper ||= Inprovise::CmdHelper.get(self, config[:helper])
   end
 
+  def disconnect!
+    @user_nodes.each_value {|n| n.disconnect! }
+    @channel.close
+    self
+  end
+
   # generic command execution
 
   def run(cmd, opts={})

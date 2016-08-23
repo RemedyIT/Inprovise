@@ -34,6 +34,8 @@ module Inprovise::CmdHelper
 
   end
 
+  attr_reader :channel
+
   # default init
   def initialize(channel)
     @channel = channel

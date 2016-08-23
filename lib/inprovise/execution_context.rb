@@ -97,7 +97,7 @@ class Inprovise::ExecutionContext
   end
 
   def init_config(hash)
-    hash.reduce(OpenStruct.new(hash)) do |os,(k,v)|
+    hash.to_h.reduce(OpenStruct.new(hash)) do |os,(k,v)|
       os[k] = init_config(v) if Hash === v
       os
     end
@@ -119,7 +119,7 @@ class Inprovise::ExecutionContext
     return self if user.nil? || user == node.user
     new_node = @node.for_user(user)
     new_log = @log.clone_for_node(new_node)
-    self.class.new(new_node, new_log,@index, @config)
+    self.class.new(new_node, new_log, @index, @config)
   end
 
   def run_local(cmd)
