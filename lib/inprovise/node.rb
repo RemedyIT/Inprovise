@@ -28,7 +28,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
 
   def disconnect!
     @user_nodes.each_value {|n| n.disconnect! }
-    @channel.close
+    @channel.close if @channel
     self
   end
 
