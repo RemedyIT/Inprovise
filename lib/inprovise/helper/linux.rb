@@ -123,7 +123,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def binary_exists?(bin)
-    exec("which #{bin}") =~ /\/#{bin}/
+    exec("which #{bin}") =~ /\/#{bin}/ ? true : false
   end
 
   private

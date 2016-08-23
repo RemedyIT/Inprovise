@@ -116,7 +116,7 @@ Inprovise::CmdHelper.define('windows') do
   end
 
   def binary_exists?(bin)
-    run(%{for %p in (#{bin}) do (if exist "%~$PATH:p" echo %~$PATH:p)}).chomp =~ /#{bin}/
+    run(%{for %p in (#{bin}) do (if exist "%~$PATH:p" echo %~$PATH:p)}).chomp =~ /#{bin}/ ? true : false
   end
 
 end
