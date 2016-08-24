@@ -74,11 +74,7 @@ class Inprovise::Controller
       ]
     end
     # extract options
-    opts = options[:config].inject({}) do |rc, cfg|
-      k,v = cfg.split('=')
-      rc.store(k.to_sym, get_value(v))
-      rc
-    end
+    opts = parse_config(options[:config])
     # execute runners
     if @sequential
       runners.each {|runner, cfg| exec(runner, command, cfg.merge(opts)) }
@@ -104,20 +100,26 @@ class Inprovise::Controller
     end
   end
 
+  def parse_config(cfg, opts = {})
+    cfg.inject(opts) do |rc,cfg|
+      k,v = cfg.split('=')
+      k = k.split('.')
+      h = rc
+      while k.size > 1
+        hk = k.shift.to_sym
+        raise ArgumentError, "Conflicting config category #{hk}" unless !h.has_key?(hk) || Hash === h[hk]
+        h = (h[hk] ||= {})
+      end
+      h.store(k.shift.to_sym, get_value(v))
+      rc
+    end
+  end
+
   def run_node_cmd(command, options, *names)
     case command
     when :add
-      opts = options[:config].inject({ host: options[:address] }) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
-      opts[:credentials] = {}
-      options[:credential].inject(opts[:credentials]) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
+      opts = parse_config(options[:config], { host: options[:address] })
+      opts[:credentials] = parse_config(options[:credential])
       @targets << (node = Inprovise::Infrastructure::Node.new(names.first, opts))
 
       Inprovise.log.local("Adding #{node.to_s}")
@@ -144,17 +146,8 @@ class Inprovise::Controller
         raise ArgumentError, "Unknown target [#{name}]" unless tgt
         tgt.targets
       end.flatten.uniq
-      opts = options[:config].inject({}) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
-      opts[:credentials] = {}
-      options[:credential].inject(opts[:credentials]) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
+      opts = parse_config(options[:config])
+      opts[:credentials] = parse_config(options[:credential])
       if @sequential || (!options[:sniff]) || @targets.size == 1
         @targets.each {|tgt| run_target_update(tgt, opts.dup, options) }
       else
@@ -195,11 +188,7 @@ class Inprovise::Controller
     case command
     when :add
       options[:target].each {|t| raise ArgumentError, "Unknown target [#{t}]" unless Inprovise::Infrastructure.find(t) }
-      opts = options[:config].inject({}) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
+      opts = parse_config(options[:config])
       grp = Inprovise::Infrastructure::Group.new(names.first, opts, options[:target])
 
       Inprovise.log.local("Adding #{grp.to_s}")
@@ -224,11 +213,7 @@ class Inprovise::Controller
         raise ArgumentError, "Invalid group #{name}" unless grp && grp.is_a?(Inprovise::Infrastructure::Group)
         grp
       end
-      opts = options[:config].inject({}) do |rc, cfg|
-        k,v = cfg.split('=')
-        rc.store(k.to_sym, get_value(v))
-        rc
-      end
+      opts = parse_config(options[:config])
       grp_tgts = options[:target].collect do |t|
                    tgt = Inprovise::Infrastructure.find(t)
                    raise ArgumentError, "Unknown target #{t}" unless tgt
