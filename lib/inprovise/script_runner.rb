@@ -89,6 +89,7 @@ class Inprovise::ScriptRunner
     context = context.for_user(script.user) if script.user
     context.log.set_task(script)
     context.log.command(command_name)
+    context.config.command = command_name
     cmds.map {|cmd| context.exec(cmd) }
   end
 
