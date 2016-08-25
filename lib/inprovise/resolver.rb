@@ -4,48 +4,49 @@
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::Resolver
-  attr_reader :scripts, :tree
+  attr_reader :scripts
   def initialize(script,index=nil)
     @script = script
     @index = index || Inprovise::ScriptIndex.default
     @last_seen = script
-    @tree = [@script]
-    @scripts = []
+    @scripts = [@script]
   end
 
   def resolve
     dependencies = @script.dependencies.reverse.map { |d| @index.get(d) }
     begin
-      @tree += dependencies.map {|d| Inprovise::Resolver.new(d, @index).resolve.tree }
+      dependencies.each do |d|
+        @scripts = Inprovise::Resolver.new(d, @index).resolve.scripts + @scripts
+      end
     rescue SystemStackError
       raise CircularDependencyError.new
     end
-    @scripts = @tree.flatten
-    @scripts.reverse!
     @scripts.uniq!
     add_children
+    @scripts.uniq!
     self
   end
 
   def add_children
-    @scripts = @scripts.reduce([]) do |arr, script|
-      arr << script
-      add_script_children(script, arr)
-      arr
+    @scripts = @scripts.reduce([]) do |list, script|
+      list << script
+      list.concat(resolve_children(script, list))
+      list
     end
   end
   private :add_children
 
-  def add_script_children(script, arr)
-    script.children.each do |child_name|
-      child = @index.get(child_name)
-      unless arr.include?(child)
-        arr << child
-        add_script_children(child, arr)
-      end
+  def resolve_children(script, list)
+    begin
+      script.children.map do |cname|
+        child = @index.get(cname)
+        list.include?(child) ? [] : Inprovise::Resolver.new(child, @index).resolve.scripts
+      end.flatten
+    rescue SystemStackError
+      raise CircularDependencyError.new
     end
   end
-  private :add_script_children
+  private :resolve_children
 
   class CircularDependencyError < StandardError
     def initialize
