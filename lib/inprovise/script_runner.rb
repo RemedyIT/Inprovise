@@ -90,6 +90,7 @@ class Inprovise::ScriptRunner
     context.log.set_task(script)
     context.log.command(command_name)
     context.config.command = command_name
+    context.script = script
     cmds.map {|cmd| context.exec(cmd) }
   end
 

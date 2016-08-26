@@ -87,6 +87,7 @@ class Inprovise::ExecutionContext
   end
 
   attr_reader :node, :config
+  attr_accessor :script
 
   def initialize(node, log, index, config=nil)
     @node = node
@@ -94,6 +95,7 @@ class Inprovise::ExecutionContext
     @node.log_to(@log)
     @config = init_config(config || @node.config)
     @index = index
+    @script = nil
   end
 
   def init_config(hash)
@@ -187,14 +189,18 @@ class Inprovise::ExecutionContext
   end
 
   def trigger(action_ref, *args)
-    pkg_name, action_name = *action_ref.split(':', 2)
-    pkg = @index.get(pkg_name)
-    action = pkg.actions[action_name]
+    action_name, pkg_name = *action_ref.split(':', 2).reverse
+    pkg = @script
+    pkg = @index.get(pkg_name) if pkg_name
+    action = pkg.actions[action_name] if pkg
     raise Inprovise::MissingActionError.new(action_ref) unless action
     curtask = @node.log.set_task(action_ref)
+    curscript = @script
+    @script = pkg
     begin
       exec(action, *args)
     ensure
+      @script = curscript
       @node.log.set_task(curtask)
     end
   end

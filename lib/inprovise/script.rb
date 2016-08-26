@@ -101,7 +101,7 @@ end
 
 Inprovise::DSL.dsl_define do
   def script(name, &definition)
-    Inprovise.log.local("Adding provisiong script #{name}") if Inprovise.verbosity > 1
+    Inprovise.log.local("Adding provisioning script #{name}") if Inprovise.verbosity > 1
     Inprovise.add_script(Inprovise::Script.new(name)) do |script|
       Inprovise::Script::DSL.new(script).instance_eval(&definition)
     end

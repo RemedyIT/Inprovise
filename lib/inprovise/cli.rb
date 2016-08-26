@@ -27,6 +27,9 @@ class Inprovise::Cli
   desc 'Increase verbosity, useful for debugging.'
   flag [:v, :verbose], :arg_name => 'LEVEL', :default_value => 0, :type => Integer
 
+  desc 'Show exception backtraces on exit.'
+  switch [:x, :'show-backtrace'], {negatable: false}
+
   desc 'Don\'t run tasks in parrallel across nodes.'
   switch [:sequential], {negatable: false}
 
@@ -61,6 +64,7 @@ class Inprovise::Cli
     # Use skips_pre before a command to skip this block
     # on that command only
     Inprovise.verbosity = global[:verbose] || 0
+    Inprovise.show_backtrace = global[:'show-backtrace']
     unless command.name == :init
       if File.readable?(File.join(Inprovise.root, Inprovise::RC_FILE))
         Inprovise.log.local("Loading #{Inprovise::RC_FILE}") if Inprovise.verbosity > 1
@@ -82,7 +86,7 @@ class Inprovise::Cli
     # Error logic here
     # return false to skip default error handling
     $stderr.puts "ERROR: #{exception.message}".red
-    if Inprovise.verbosity > 0
+    if Inprovise.show_backtrace
       $stderr.puts "#{exception}\n#{exception.backtrace.join("\n")}"
     end
     exit 1

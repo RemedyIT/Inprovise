@@ -22,6 +22,14 @@ module Inprovise
       @verbose = val.to_i
     end
 
+    def show_backtrace
+      @show_backtrace ||= false
+    end
+
+    def show_backtrace=(f)
+      @show_backtrace = (f == true)
+    end
+
     def infra
       @infra ||= (ENV['INPROVISE_INFRA'] || find_infra)
     end
