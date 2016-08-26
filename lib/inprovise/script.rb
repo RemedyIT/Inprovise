@@ -86,7 +86,7 @@ class Inprovise::Script
     if block_given?
       (@commands[name.to_sym] ||= []) << definition
     else
-      @commands[name.to_sym]
+      @commands[name.to_sym] ||= []
     end
   end
 
