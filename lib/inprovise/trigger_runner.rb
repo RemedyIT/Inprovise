@@ -27,7 +27,7 @@ class Inprovise::TriggerRunner
   private
 
   def parse_action_ref(action_ref_with_args)
-    matches = action_ref_with_args.match(/([\w\:]+?)(\[([\w\,]+?)\])/)
+    matches = action_ref_with_args.match(/([\w\-\:]+?)(\[([\w\-\,]+?)\])/)
     return [action_ref_with_args,[]] unless matches
     action_ref = matches[1]
     args = matches[3].split(',').map(&:strip)
