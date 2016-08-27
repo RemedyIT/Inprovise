@@ -36,6 +36,7 @@ class Inprovise::ScriptRunner
     scrs.reverse! if command_name.to_sym == :revert
     @log.say scrs.map(&:name).join(', ').yellow if Inprovise.verbosity > 0
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
+    context.config.command = command_name
     scrs.each do |script|
       send(:"execute_#{command_name}", script, context)
     end
@@ -89,7 +90,6 @@ class Inprovise::ScriptRunner
     context = context.for_user(script.user) if script.user
     context.log.set_task(script)
     context.log.command(command_name)
-    context.config.command = command_name
     context.script = script
     cmds.map {|cmd| context.exec(cmd) }
   end
