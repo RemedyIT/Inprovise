@@ -30,6 +30,30 @@ module Inprovise
       @show_backtrace = (f == true)
     end
 
+    def sequential
+      @sequential ||= false
+    end
+
+    def sequential=(f)
+      @sequential = (f == true)
+    end
+
+    def demonstrate
+      @demonstrate ||= false
+    end
+
+    def demonstrate=(f)
+      @demonstrate = (f == true)
+    end
+
+    def skip_dependencies
+      @skip_dependencies ||= false
+    end
+
+    def skip_dependencies=(f)
+      @skip_dependencies = (f == true)
+    end
+
     def infra
       @infra ||= (ENV['INPROVISE_INFRA'] || find_infra)
     end
@@ -40,6 +64,14 @@ module Inprovise
 
     def default_scheme
       ENV['INPROVISE_SCHEME'] || Inprovise::DEFAULT_SCHEME
+    end
+
+    def schemes
+      @schemes ||= []
+    end
+
+    def loaded?(scheme)
+      schemes.include?(File.expand_path(scheme, root))
     end
 
     def log
@@ -83,8 +115,11 @@ module Inprovise
     dsl_define do
       def include(path)
         path = File.expand_path(path, Inprovise.root)
-        Inprovise.log.local("Loading provisioning scheme #{path}") if Inprovise.verbosity > 0
-        Inprovise::DSL.module_eval(File.read(path), path)
+        unless Inprovise.schemes.include?(path)
+          Inprovise.schemes << path
+          Inprovise.log.local("Loading provisioning scheme #{path}") if Inprovise.verbosity > 0
+          Inprovise::DSL.module_eval(File.read(path), path)
+        end
       end
     end
 

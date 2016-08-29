@@ -17,8 +17,8 @@ class Inprovise::Cli
 
       cgrp_add.action do |global,options,args|
         raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:add, options, :group, *args)
+        Inprovise::Controller.run(:add, options, :group, *args)
+        Inprovise::Controller.wait!
       end
 
     end
@@ -29,8 +29,8 @@ class Inprovise::Cli
 
       cgrp_del.action do |global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:remove, options, :group, *args)
+        Inprovise::Controller.run(:remove, options, :group, *args)
+        Inprovise::Controller.wait!
       end
 
     end
@@ -45,8 +45,8 @@ class Inprovise::Cli
 
       cgrp_update.action do |global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:update, options, :group, *args)
+        Inprovise::Controller.run(:update, options, :group, *args)
+        Inprovise::Controller.wait!
       end
     end
 

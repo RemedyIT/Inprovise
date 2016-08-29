@@ -139,42 +139,42 @@ describe Inprovise::Cli do
   describe "'apply' command" do
 
     it 'invokes the Inprovise::Controller#run appropriately' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :apply;
-        opts[:scheme] .must_equal 'inprovise.rb'
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :apply
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{apply script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom scheme' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :apply;
-        opts[:scheme] .must_equal ['myscheme.rb']
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :apply
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{apply -s myscheme.rb script node})
+        Inprovise.loaded?('myscheme.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom config' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :apply;
-        opts[:scheme] .must_equal 'inprovise.rb'
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :apply
         opts[:config1] = 'value1'
-        args.shift.must_equal 'script';
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{apply -c config1=value1 script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
@@ -183,42 +183,42 @@ describe Inprovise::Cli do
   describe "'revert' command" do
 
     it 'invokes the Inprovise::Controller#run appropriately' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :revert;
-        opts[:scheme] .must_equal 'inprovise.rb'
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd, tgt, opts,*args|
+        cmd.must_equal :revert
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{revert script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom scheme' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :revert;
-        opts[:scheme] .must_equal ['myscheme.rb']
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :revert
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{revert -s myscheme.rb script node})
+        Inprovise.loaded?('myscheme.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom config' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :revert;
-        opts[:scheme] .must_equal 'inprovise.rb'
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :revert
         opts[:config1] = 'value1'
-        args.shift.must_equal 'script';
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{revert -c config1=value1 script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
@@ -227,42 +227,42 @@ describe Inprovise::Cli do
   describe "'validate' command" do
 
     it 'invokes the Inprovise::Controller#run appropriately' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :validate;
-        opts[:scheme] .must_equal 'inprovise.rb'
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :validate
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{validate script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom scheme' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :validate;
-        opts[:scheme] .must_equal ['myscheme.rb']
-        args.shift.must_equal 'script';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :validate
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{validate -s myscheme.rb script node})
+        Inprovise.loaded?('myscheme.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom config' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :validate;
-        opts[:scheme] .must_equal 'inprovise.rb'
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :validate
         opts[:config1] = 'value1'
-        args.shift.must_equal 'script';
+        tgt.must_equal 'script'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{validate -c config1=value1 script node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
@@ -271,42 +271,42 @@ describe Inprovise::Cli do
   describe "'trigger' command" do
 
     it 'invokes the Inprovise::Controller#run appropriately' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :trigger;
-        opts[:scheme] .must_equal 'inprovise.rb'
-        args.shift.must_equal 'script:action';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :trigger
+        tgt.must_equal 'script:action'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{trigger script:action node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom scheme' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :trigger;
-        opts[:scheme] .must_equal ['myscheme.rb']
-        args.shift.must_equal 'script:action';
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :trigger
+        tgt.must_equal 'script:action'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{trigger -s myscheme.rb script:action node})
+        Inprovise.loaded?('myscheme.rb').must_equal true
       end
     end
 
     it 'invokes the Inprovise::Controller#run with custom config' do
-      ctl = Inprovise::Controller.new({})
-      ctl.expects(:run).with() do |cmd,opts,*args|
-        cmd.must_equal :trigger;
-        opts[:scheme] .must_equal 'inprovise.rb'
+      ctl = Inprovise::Controller.new
+      ctl.expects(:run_provisioning_command).with() do |cmd,tgt,opts,*args|
+        cmd.must_equal :trigger
         opts[:config1] = 'value1'
-        args.shift.must_equal 'script:action';
+        tgt.must_equal 'script:action'
         args.shift.must_equal 'node'
       end
       Inprovise::Controller.stub(:new, ctl) do
         Inprovise::Cli.run(%w{trigger -c config1=value1 script:action node})
+        Inprovise.loaded?('inprovise.rb').must_equal true
       end
     end
 

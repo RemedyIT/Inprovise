@@ -8,6 +8,9 @@ require 'minitest/autorun'
 require 'mocha/setup'
 require_relative '../lib/inprovise'
 
+# force root file
+ENV['INPROVISE_INFRA'] = File.join(File.dirname(__FILE__), 'fixtures', Inprovise::INFRA_FILE)
+
 def reset_script_index!
   Inprovise::ScriptIndex.default.clear!
 end

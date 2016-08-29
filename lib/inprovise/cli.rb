@@ -65,6 +65,9 @@ class Inprovise::Cli
     # on that command only
     Inprovise.verbosity = global[:verbose] || 0
     Inprovise.show_backtrace = global[:'show-backtrace']
+    Inprovise.sequential = global[:sequential]
+    Inprovise.demonstrate = global[:demonstrate]
+    Inprovise.skip_dependencies = global[:'skip-dependencies']
     unless command.name == :init
       if File.readable?(File.join(Inprovise.root, Inprovise::RC_FILE))
         Inprovise.log.local("Loading #{Inprovise::RC_FILE}") if Inprovise.verbosity > 1

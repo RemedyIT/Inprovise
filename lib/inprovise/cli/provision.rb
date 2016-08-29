@@ -16,8 +16,8 @@ class Inprovise::Cli
     capply.action do |global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
-      ctl = Inprovise::Controller.new(global)
-      ctl.run(:apply, options, *args)
+      Inprovise::Controller.run(:apply, options, *args)
+      Inprovise::Controller.wait!
     end
   end
 
@@ -32,8 +32,8 @@ class Inprovise::Cli
     crevert.action do |global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
-      ctl = Inprovise::Controller.new(global)
-      ctl.run(:revert, options, *args)
+      Inprovise::Controller.run(:revert, options, *args)
+      Inprovise::Controller.wait!
     end
   end
 
@@ -48,8 +48,8 @@ class Inprovise::Cli
     cvalid.action do |global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
-      ctl = Inprovise::Controller.new(global)
-      ctl.run(:validate, options, *args)
+      Inprovise::Controller.run(:validate, options, *args)
+      Inprovise::Controller.wait!
     end
   end
 
@@ -64,8 +64,8 @@ class Inprovise::Cli
     ctrigger.action do |global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
-      ctl = Inprovise::Controller.new(global)
-      ctl.run(:trigger, options, *args)
+      Inprovise::Controller.run(:trigger, options, *args)
+      Inprovise::Controller.wait!
     end
   end
 

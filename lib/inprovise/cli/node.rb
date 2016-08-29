@@ -20,8 +20,8 @@ class Inprovise::Cli
 
       cnod_add.action do |global,options,args|
         raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:add, options, :node, *args)
+        Inprovise::Controller.run(:add, options, :node, *args)
+        Inprovise::Controller.wait!
       end
 
     end
@@ -32,8 +32,8 @@ class Inprovise::Cli
 
       cnod_del.action do |global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:remove, options, :node, *args)
+        Inprovise::Controller.run(:remove, options, :node, *args)
+        Inprovise::Controller.wait!
       end
 
     end
@@ -50,8 +50,8 @@ class Inprovise::Cli
 
       cnod_update.action do |global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
-        ctl = Inprovise::Controller.new(global)
-        ctl.run(:update, options, :node, *args)
+        Inprovise::Controller.run(:update, options, :node, *args)
+        Inprovise::Controller.wait!
       end
     end
 
