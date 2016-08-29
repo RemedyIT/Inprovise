@@ -6,8 +6,9 @@ Inprovise
 
 Inprovise (Intuitive Provisioning Environment) is a super simple way to provision servers and virtual machines.
 
-If you've found yourself stuck in the gap between deployment tools like Capistrano and full blown infrastructure tools like Puppet and Chef then Inprovise is probably for you. 
-This is especially the case if you choose to cycle machines and prefer baking from scratch when changes are required rather than attempting to converge system state (although Inprovise is flexible and extensible enough to achieve anything you would like).
+If you've found yourself stuck in the gap between deployment tools like Capistrano and full blown infrastructure tools like Puppet and Chef then Inprovise might be a good fit for you. 
+This is especially the case if you choose to cycle machines and prefer baking from scratch when changes are required rather than attempting to converge system state 
+(although Inprovise is flexible and extensible enough to achieve anything you would like).
 
 Acknowledgement
 ---------------
@@ -24,7 +25,7 @@ I really did like the agent-less setup and the simple and elegant structure of t
 did not apply to us I decided to take up his code and rework it to my ideas and provide it with a minimum of multi platform support to also be able to manage the non-*nix nodes we needed to provision. 
 
 As Andy indicated the Orca name was (to be) handed over to another gem maintainer and I did not particularly like it anyway (sorry Andy) I renamed the package. Andy's code proved quite resilient to my changes
-though and (apart from the name changes) I was able to copy large chunks more or less verbatim and rework those slightly thereby increasing my coding production significantly.
+though and (apart from the name changes) I was able to copy large chunks more or less verbatim and rework those step by step thereby increasing my coding production significantly.
 
 What problem does Inprovise try to solve?
 ------------------------------------
