@@ -141,33 +141,35 @@ no scheme is specified Inprovise looks for the scheme `inprovise.rb` in the proj
 Scheme scripts are really simple to learn in less than 5 mins. Below is an example inprovise.rb file with some hints to help you get started. 
 A more complete WIP example can be found in this gist... https://gist.github.com/andykent/5814997
 
-    # define a new script called 'gem' that provides some actions for managing rubygems
-    script 'gem' do
-      depends_on 'ruby-1.9.3'                     # this script depends on another script called ruby-1.9.3
-      action 'exists' do |gem_name|               # define an action that other scripts can trigger called 'exists'
-        run("gem list -i #{gem_name}") =~ /true/  # execute the command, get the output and check it contains 'true'
-      end
-      action 'install' do |gem_name|
-        run "gem install #{gem_name} --no-ri --no-rdoc"
-      end
-      action 'uninstall' do |gem_name|
-        run "gem uninstall #{gem_name} -x -a"
-      end
-    end
+````ruby
+# define a new script called 'gem' that provides some actions for managing rubygems
+script 'gem' do
+  depends_on 'ruby-1.9.3'                     # this script depends on another script called ruby-1.9.3
+  action 'exists' do |gem_name|               # define an action that other scripts can trigger called 'exists'
+    run("gem list -i #{gem_name}") =~ /true/  # execute the command, get the output and check it contains 'true'
+  end
+  action 'install' do |gem_name|
+    run "gem install #{gem_name} --no-ri --no-rdoc"
+  end
+  action 'uninstall' do |gem_name|
+    run "gem uninstall #{gem_name} -x -a"
+  end
+end
 
-    # define a script called 'bundler' that can be used to manage the gem by the same name
-    script 'bundler' do
-      depends_on 'gem'
-      apply do                                # apply gets called whenever this script or a script that depends on it is applied
-        trigger('gem:install', 'bundler')     # trigger triggers defined actions, in this case the action 'install' on 'gem'
-      end
-      remove do                               # remove gets called whenever this script or a script that depends on it is removed
-        trigger('gem:uninstall', 'bundler')
-      end
-      validate do                             # validate is used internally to check if the script is applied correctly or not
-        trigger('gem:exists', 'bundler')      # validate should return true if the script is applied correctly
-      end
-    end
+# define a script called 'bundler' that can be used to manage the gem by the same name
+script 'bundler' do
+  depends_on 'gem'
+  apply do                                # apply gets called whenever this script or a script that depends on it is applied
+    trigger('gem:install', 'bundler')     # trigger triggers defined actions, in this case the action 'install' on 'gem'
+  end
+  remove do                               # remove gets called whenever this script or a script that depends on it is removed
+    trigger('gem:uninstall', 'bundler')
+  end
+  validate do                             # validate is used internally to check if the script is applied correctly or not
+    trigger('gem:exists', 'bundler')      # validate should return true if the script is applied correctly
+  end
+end
+````
 
 Configuration
 -------------
