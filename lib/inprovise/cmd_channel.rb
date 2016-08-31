@@ -34,6 +34,8 @@ module Inprovise::CmdChannel
 
   end
 
+  attr_reader :node
+
   def initialize(node)
     @node = node
   end

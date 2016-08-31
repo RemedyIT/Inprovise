@@ -5,6 +5,7 @@
 
 class Inprovise::Logger
   attr_accessor :node
+  attr_reader :task
 
   def initialize(node, task)
     @node = node

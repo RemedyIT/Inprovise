@@ -193,6 +193,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     @helper = nil
     @user_nodes = {}
     @history = []
+    @log = Inprovise::Logger.new(self, @log.task) if @log
   end
 
   def to_s

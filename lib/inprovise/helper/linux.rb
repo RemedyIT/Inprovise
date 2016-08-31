@@ -8,6 +8,7 @@ Inprovise::CmdHelper.define('linux') do
   def initialize(channel, sudo=false)
     super(channel)
     @exec = sudo ? :sudo_run : :plain_run
+    @cwd = nil
   end
 
   # platform properties
@@ -20,15 +21,34 @@ Inprovise::CmdHelper.define('linux') do
     "\$#{varname}"
   end
 
+  def cwd
+    @cwd || plain_run('pwd').chomp
+  end
+
+  def cwd=(path)
+    @cwd = path
+  end
+
   # generic command execution
 
   def run(cmd, forcelog=false)
+    cmd = "cd #{cwd}; #{cmd}" if @cwd
     exec(cmd, forcelog)
   end
 
   def sudo
     return self if @exec == :sudo_run
     @sudo ||= self.class.new(@channel, true)
+  end
+
+  # file management
+
+  def upload(from, to)
+    @channel.upload(real_path(from), real_path(to))
+  end
+
+  def download(from, to)
+    @channel.download(real_path(from), real_path(to))
   end
 
   # basic commands
@@ -38,6 +58,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def cat(path)
+    path = real_path(path)
     begin
       @channel.content(path)
     rescue
@@ -46,14 +67,17 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def hash_for(path)
+    path = real_path(path)
     exec("sha1sum #{path}")[0...40]
   end
 
   def mkdir(path)
+    path = real_path(path)
     exec("mkdir -p #{path}")
   end
 
   def exists?(path)
+    path = real_path(path)
     begin
       @channel.exists?(path)
     rescue
@@ -62,6 +86,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def file?(path)
+    path = real_path(path)
     begin
       @channel.file?(path)
     rescue
@@ -70,6 +95,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def directory?(path)
+    path = real_path(path)
     begin
       @channel.file?(path)
     rescue
@@ -78,10 +104,11 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def copy(from, to)
-    exec("cp #{from} #{to}")
+    exec("cp #{real_path(from)} #{real_path(to)}")
   end
 
   def delete(path)
+    path = real_path(path)
     begin
       @channel.delete(path)
     rescue
@@ -90,6 +117,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def permissions(path)
+    path = real_path(path)
     begin
       @channel.permissions(path)
     rescue
@@ -98,6 +126,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def set_permissions(path, perm)
+    path = real_path(path)
     begin
       @channel.set_permissions(path, perm)
     rescue
@@ -106,6 +135,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def owner(path)
+    path = real_path(path)
     begin
       @channel.owner(path)
     rescue
@@ -115,6 +145,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def set_owner(path, user, group=nil)
+    path = real_path(path)
     begin
       @channel.set_owner(path, user, group)
     rescue
@@ -127,6 +158,11 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   private
+
+  def real_path(path)
+    return File.expand_path(path, @cwd) if @cwd
+    path
+  end
 
   def exec(cmd, forcelog=false)
     send(@exec, cmd, forcelog)

@@ -20,6 +20,7 @@ Inprovise::CmdHelper.define('windows') do
   # generic command runution
 
   def sudo
+    # not implemented yet
     return self
   end
 

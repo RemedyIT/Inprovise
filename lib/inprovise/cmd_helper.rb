@@ -51,6 +51,14 @@ module Inprovise::CmdHelper
     nil
   end
 
+  def cwd
+    nil
+  end
+
+  def cwd=(path)
+    nil
+  end
+
   # generic command execution
 
   def run(cmd, forcelog=false)

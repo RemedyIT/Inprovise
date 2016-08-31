@@ -9,9 +9,8 @@ require 'digest/sha1'
 
 Inprovise::CmdChannel.define('ssh') do
 
-  def initialize(node, user=nil)
+  def initialize(node)
     super(node)
-    @user = user || node.user
     @connection = nil
     @sftp = nil
     if @node.config.has_key?(:credentials) && @node.config[:credentials].has_key?(:'public-key')
@@ -32,10 +31,12 @@ Inprovise::CmdChannel.define('ssh') do
   # file management
 
   def upload(from, to)
+    @node.log.remote("SFTP.UPLOAD: #{from} => #{to}") if Inprovise.verbosity > 1
     sftp.upload!(from, to)
   end
 
   def download(from, to)
+    @node.log.remote("SFTP.DOWNLOAD: #{to} <= #{from}") if Inprovise.verbosity > 1
     sftp.download!(from, to)
   end
 
@@ -142,13 +143,23 @@ Inprovise::CmdChannel.define('ssh') do
     begin
       @node.log_to(Inprovise::Logger.new(@node, 'ssh[init]'))
       unless exists?('./.ssh')
-        mkdir('./.ssh')
-        set_permissions('./.ssh', 755)
+        mkdir('./.ssh') rescue run('mkdir .ssh')
+        set_permissions('./.ssh', 755) rescue run('chmod 0755 ./.ssh')
+      end
+      pubkey = File.read(pubkey_path)
+      # check if public key already configured
+      if exists?('./.ssh/authorized_keys')
+        auth_keys = begin
+                      content('./.ssh/authorized_keys')
+                    rescue
+                      run('cat ./.ssh/authorized_keys')
+                    end.split("\n")
+        return if auth_keys.any? { |key| key == pubkey }
       end
       begin
         @node.log.remote("APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
         sftp.file.open('./.ssh/authorized_keys', 'a') do |f|
-          f.puts File.read(pubkey_path)
+          f.puts pubkey
         end
       rescue
         # using the SFTP option failed, let's try a more basic approach
@@ -157,7 +168,7 @@ Inprovise::CmdChannel.define('ssh') do
         run("cat #{upload_path} >> ./.ssh/authorized_keys")
         run("rm #{upload_path}")
       end
-      set_permissions('./.ssh/authorized_keys', 644)
+      set_permissions('./.ssh/authorized_keys', 644) rescue run('chmod 0644 ./.ssh/authorized_keys')
     ensure
       @node.log_to(log_bak)
     end
@@ -177,7 +188,7 @@ Inprovise::CmdChannel.define('ssh') do
 
   def connection
     return @connection if @connection && !@connection.closed?
-    @connection = Net::SSH.start(@node.host, @user, options_for_ssh)
+    @connection = Net::SSH.start(@node.host, @node.user, options_for_ssh)
   end
 
   def disconnect
