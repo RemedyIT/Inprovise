@@ -177,14 +177,22 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     @log = log
   end
 
-  def for_user(new_user)
+  def for_user(new_user, user_key=nil)
     new_user = new_user.to_s
     return self if self.user == new_user
-    return @user_nodes[new_user] if @user_nodes[new_user]
+    user_key ||= new_user
+    return @user_nodes[user_key] if @user_nodes[user_key]
     new_node = self.dup
     new_node.prepare_connection_for_user!(new_user)
-    @user_nodes[new_user] = new_node
+    @user_nodes[user_key] = new_node
     new_node
+  end
+
+  def for_dir(path)
+    user_key = "#{self.user}:#{path}"
+    return @user_nodes[user_key] if @user_nodes[user_key]
+    new_node = self.dup
+    new_node.prepare_connection_for_user!(self.user)
   end
 
   def prepare_connection_for_user!(new_user)

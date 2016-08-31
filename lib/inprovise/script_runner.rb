@@ -82,7 +82,9 @@ class Inprovise::ScriptRunner
 
   def is_valid?(script, context)
     results = exec(script, :validate, context)
-    results.all?
+    rc = results.all?
+    context.log.command("validate -> #{rc}") if Inprovise.verbosity > 0
+    rc
   end
 
   def exec(script, command_name, context)

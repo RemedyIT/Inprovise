@@ -33,6 +33,9 @@
 # as 'user' do ... end                              creates a nested execution context where all remote commands
 #                                                   will be executed for the given user
 #
+# in_dir 'path' do ... end                          creates a nested execution context where all remote commands
+#                                                   will be executed using the given path as working directory
+#
 # trigger 'script:action'[,*args]                   runs specified action code blocks
 #
 # run 'command'[, {}]                               execute command on current node over SSH connection

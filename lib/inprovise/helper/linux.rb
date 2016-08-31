@@ -25,8 +25,10 @@ Inprovise::CmdHelper.define('linux') do
     @cwd || plain_run('pwd').chomp
   end
 
-  def cwd=(path)
-    @cwd = path
+  def set_cwd(path)
+    old_cwd = @cwd
+    @cwd = path ? File.expand_path(path, self.cwd) : path
+    old_cwd
   end
 
   # generic command execution

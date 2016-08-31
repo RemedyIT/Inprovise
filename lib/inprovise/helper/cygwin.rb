@@ -31,9 +31,9 @@ Inprovise::CmdHelper.define('cygwin', Inprovise::CmdHelper.implementations['linu
   def sudo
     return self if channel.node.user == admin_user
     unless @sudo
-      @sudo = channel.node.for_user(admin_user).helper
-      @sudo.cwd = self.cwd
+      @sudo = channel.node.for_user(admin_user, "sudo:#{channel.node.user}").helper
     end
+    @sudo.set_cwd(self.cwd)
     @sudo.channel.node.log_to(channel.node.log.clone_for_node(@sudo.channel.node))
     @sudo
   end

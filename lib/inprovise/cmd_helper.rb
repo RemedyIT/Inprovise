@@ -55,7 +55,8 @@ module Inprovise::CmdHelper
     nil
   end
 
-  def cwd=(path)
+  # *must* return previous value
+  def set_cwd(path)
     nil
   end
 

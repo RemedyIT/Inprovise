@@ -9,6 +9,7 @@ class Inprovise::Logger
 
   def initialize(node, task)
     @node = node
+    @nl = true
     set_task(task)
   end
 
@@ -52,6 +53,14 @@ class Inprovise::Logger
     say(msg)
   end
 
+  def print(msg)
+    Thread.exclusive do
+      $stdout.print "#{@node.to_s} [#{@task.bold}] " if @nl
+      $stdout.print msg.sub("\r", "\r".to_eol << "#{@node.to_s} [#{@task.bold}] ")
+    end
+    @nl = false
+  end
+
   def stdout(msg, force=false)
     say(msg, :green) if force || Inprovise.verbosity>0
   end
@@ -63,7 +72,8 @@ class Inprovise::Logger
   def say(msg, color=nil, stream=$stdout)
     msg.to_s.split("\n").each do |line|
       out = color ? line.send(color) : line
-      Thread.exclusive { stream.puts "#{@node.to_s} [#{@task.bold}] #{out}" }
+      Thread.exclusive { stream.print "#{@node.to_s} [#{@task.bold}] " if @nl; stream.puts "#{out}" }
+      @nl = true
     end
   end
 end

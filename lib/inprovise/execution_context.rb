@@ -29,6 +29,10 @@ class Inprovise::ExecutionContext
       @context.as(user, &blk)
     end
 
+    def in_dir(path, &blk)
+      @context.in_dir(path, &blk)
+    end
+
     def run_local(cmd)
       @context.run_local(cmd)
     end
@@ -115,6 +119,17 @@ class Inprovise::ExecutionContext
 
   def as(user, &blk)
     for_user(user).exec(blk)
+  end
+
+  def in_dir(path, &blk)
+    rc = nil
+    old_cwd = @node.helper.set_cwd(path)
+    begin
+      rc = exec(blk)
+    ensure
+      @node.helper.set_cwd(old_cwd)
+    end
+    rc
   end
 
   def for_user(user)
