@@ -1,0 +1,16 @@
+before_install:
+  - gem install bundler
+bundler_args: "--verbose"
+script: "rake test"
+rvm:
+  - 2.0.0
+  - 2.1
+  - 2.2
+  - 2.3.1
+  - 2.4
+  - ruby-head
+gemfile:
+  - Gemfile
+matrix:
+  allow_failures:
+    - rvm: ruby-head
