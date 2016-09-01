@@ -1,3 +1,5 @@
+require_relative './lib/inprovise'
+
 Gem::Specification.new do |gem|
   gem.authors       = ["Martin Corino"]
   gem.email         = ["mcorino@remedy.nl"]
@@ -10,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.name          = "inprovise"
   gem.require_paths = ["lib"]
-  gem.version       = '0.1.1'
+  gem.version       = Inprovise::VERSION
   gem.add_dependency('colored')
   gem.add_dependency('net-ssh')
   gem.add_dependency('net-sftp')

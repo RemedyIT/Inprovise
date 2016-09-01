@@ -8,7 +8,7 @@ require 'colored'
 
 module Inprovise
 
-  VERSION = '0.1.1'
+  VERSION = '0.2.1'
   INFRA_FILE = 'infra.json'
   RC_FILE = 'rigrc'
   DEFAULT_SCHEME = 'inprovise.rb'
