@@ -1,4 +1,4 @@
-require_relative './lib/inprovise'
+require_relative './lib/inprovise/version'
 
 Gem::Specification.new do |gem|
   gem.authors       = ["Martin Corino"]

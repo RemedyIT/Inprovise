@@ -8,7 +8,6 @@ require 'colored'
 
 module Inprovise
 
-  VERSION = '0.2.1'
   INFRA_FILE = 'infra.json'
   RC_FILE = 'rigrc'
   DEFAULT_SCHEME = 'inprovise.rb'
@@ -127,6 +126,7 @@ module Inprovise
 
 end
 
+require_relative './inprovise/version'
 require_relative './inprovise/logger'
 require_relative './inprovise/cmd_channel'
 require_relative './inprovise/cmd_helper'
