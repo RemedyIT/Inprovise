@@ -74,6 +74,10 @@ Inprovise::CmdHelper.define('windows') do
     run("copy #{from} #{to}")
   end
 
+  def move(from, to)
+    run("rename #{from} #{to}")
+  end
+
   def delete(path)
     begin
       @channel.delete(path)

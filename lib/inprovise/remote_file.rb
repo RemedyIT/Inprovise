@@ -45,35 +45,49 @@ class Inprovise::RemoteFile
   end
 
   def copy_to(destination)
+    destination = @context.remote(destination) if String === destination
     if destination.is_local?
       download(destination)
     else
       duplicate(destination)
     end
+  end
+
+  def move_to(destination)
+    destination = @context.remote(destination) if String === destination
+    if destination.is_local?
+      download(destination)
+    else
+      @context.move(path, destination.path)
+    end
     destination
   end
 
-  def copy_from(destination)
-    destination.copy_to(self)
+  def copy_from(source)
+    source = @context.remote(source) if String === source
+    source.copy_to(self)
   end
 
   def duplicate(destination)
+    destination = @context.remote(destination) if String === destination
     @context.copy(path, destination.path)
     destination
   end
 
   def download(destination)
-    if String === destination || destination.is_local?
-      @context.download(path, String === destination ? destination : destination.path)
+    destination = @context.local(destination) if String === destination
+    if destination.is_local?
+      @context.download(path, destination.path)
     else
       @context.copy(path, destination.path)
     end
-    String === destination ? @context.local(destination) : destination
+    destination
   end
 
   def upload(source)
-    if String === source || source.is_local?
-      @context.upload(String === source ? source : source.path, path)
+    source = @context.local(source) if String === source
+    if source.is_local?
+      @context.upload(source.path, path)
     else
       @context.copy(source.path, path)
     end

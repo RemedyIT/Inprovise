@@ -126,6 +126,11 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     helper.copy(from, to)
   end
 
+  def move(from, to)
+    log.execute("MOVE: #{from} #{to}") if Inprovise.verbosity > 0
+    helper.move(from, to)
+  end
+
   def delete(path)
     log.execute("DELETE: #{path}") if Inprovise.verbosity > 0
     helper.delete(path)

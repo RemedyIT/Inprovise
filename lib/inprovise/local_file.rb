@@ -10,7 +10,8 @@ require 'etc'
 class Inprovise::LocalFile
   attr_reader :path
 
-  def initialize(path)
+  def initialize(context, path)
+    @context = context
     @path = resolve(path)
   end
 
@@ -50,8 +51,18 @@ class Inprovise::LocalFile
   end
 
   def copy_to(destination)
+    destination = self.class.new(destination) if String === destination
     if destination.is_local?
       duplicate(destination)
+    else
+      upload(destination)
+    end
+  end
+
+  def move_to(destination)
+    destination = self.class.new(destination) if String === destination
+    if destination.is_local?
+      FileUtils.mv(path, destination.path)
     else
       upload(destination)
     end
@@ -59,10 +70,12 @@ class Inprovise::LocalFile
   end
 
   def copy_from(source)
+    source = self.class.new(source) if String === source
     source.copy_to(self)
   end
 
   def duplicate(destination)
+    destination = self.class.new(destination) if String === destination
     FileUtils.cp(path, destination.path)
     destination
   end
@@ -70,7 +83,7 @@ class Inprovise::LocalFile
   def upload(destination)
     destination = @context.remote(destination) if String === destination
     if destination.is_local?
-      FileUtils.cp(path, destination.path)
+      duplicate(destination)
     else
       destination.upload(self)
     end

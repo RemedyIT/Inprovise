@@ -7,8 +7,15 @@ require_relative 'test_helper'
 
 describe Inprovise::LocalFile do
   before :each do
+    @node = Inprovise::Infrastructure::Node.new('Node1', {host: 'host.address.net', channel: 'test', helper: 'test'})
+    @log = Inprovise::Logger.new(@node, 'remote_file_test')
+    @context = Inprovise::ExecutionContext.new(@node, @log, Inprovise::ScriptIndex.default)
     @local_file_path = File.join(File.dirname(__FILE__), 'fixtures', 'example.txt')
-    @local_file = Inprovise::LocalFile.new(@local_file_path)
+    @local_file = Inprovise::LocalFile.new(@context, @local_file_path)
+  end
+
+  after :each do
+    reset_infrastructure!
   end
 
   describe 'path' do
@@ -36,7 +43,7 @@ describe Inprovise::LocalFile do
   end
 
   describe 'copy_to' do
-    before(:each) { @destination = Inprovise::LocalFile.new("/tmp/example-#{Time.now.to_i}.txt") }
+    before(:each) { @destination = Inprovise::LocalFile.new(@context, "/tmp/example-#{Time.now.to_i}.txt") }
     after(:each)  { @destination.delete! }
 
     it 'copies a file to another local location' do

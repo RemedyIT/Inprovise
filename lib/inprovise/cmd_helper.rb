@@ -119,6 +119,10 @@ module Inprovise::CmdHelper
     nil
   end
 
+  def move(from, to)
+    nil
+  end
+
   def delete(path)
     nil
   end

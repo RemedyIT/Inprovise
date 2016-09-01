@@ -10,9 +10,9 @@ describe Inprovise::RemoteFile do
     @node = Inprovise::Infrastructure::Node.new('Node1', {host: 'host.address.net', channel: 'test', helper: 'test'})
     @log = Inprovise::Logger.new(@node, 'remote_file_test')
     @local_file_path = File.join(File.dirname(__FILE__), 'fixtures', 'example.txt')
-    @local_file = Inprovise::LocalFile.new(@local_file_path)
     @remote_file_path = '/tmp/example.txt'
     @context = Inprovise::ExecutionContext.new(@node, @log, Inprovise::ScriptIndex.default)
+    @local_file = Inprovise::LocalFile.new(@context, @local_file_path)
     @remote_file = Inprovise::RemoteFile.new(@context, @remote_file_path)
   end
 
@@ -67,7 +67,7 @@ describe Inprovise::RemoteFile do
     end
 
     it 'copies a file to local location by downlaoding it' do
-      @local_destination = Inprovise::LocalFile.new("/tmp/example-#{Time.now.to_i}.txt")
+      @local_destination = Inprovise::LocalFile.new(@context, "/tmp/example-#{Time.now.to_i}.txt")
       @node.helper.expects(:download)
                   .with(@remote_file.path, @local_destination.path)
                   .returns(nil)

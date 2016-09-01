@@ -183,8 +183,12 @@ class Inprovise::ExecutionContext
     @node.copy(from, to)
   end
 
+  def move(from, to)
+    @node.move(from, to)
+  end
+
   def local(path)
-    Inprovise::LocalFile.new(path)
+    Inprovise::LocalFile.new(self, path)
   end
 
   def remote(path)

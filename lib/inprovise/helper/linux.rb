@@ -109,6 +109,10 @@ Inprovise::CmdHelper.define('linux') do
     exec("cp #{real_path(from)} #{real_path(to)}")
   end
 
+  def move(from, to)
+    exec("mv #{real_path(from)} #{real_path(to)}")
+  end
+
   def delete(path)
     path = real_path(path)
     begin
