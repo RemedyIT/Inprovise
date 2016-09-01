@@ -25,6 +25,10 @@ class Inprovise::ScriptIndex
     scr
   end
 
+  def scripts
+    @scripts.keys
+  end
+
   def clear!
     @scripts = {}
   end

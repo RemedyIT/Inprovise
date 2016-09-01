@@ -56,8 +56,8 @@ class Inprovise::Cli
       cgrp_list.switch [:d, :details], negatable: false, :desc => 'Show group details'
 
       cgrp_list.action do |global_options,options,args|
-        $stdout.puts "\tINFRASTRUCTURE GROUPS"
-        $stdout.puts "\t====================="
+        $stdout.puts "   INFRASTRUCTURE GROUPS"
+        $stdout.puts "   ====================="
         if args.empty?
           Inprovise::Infrastructure.list(Inprovise::Infrastructure::Group).each do |g|
             Inprovise::Cli.show_target(g, options[:details])

@@ -212,6 +212,7 @@ class Inprovise::ExecutionContext
     curtask = @node.log.set_task(action_ref)
     curscript = @script
     @script = pkg
+    @script.merge_configuration(self.config)
     begin
       exec(action, *args)
     ensure

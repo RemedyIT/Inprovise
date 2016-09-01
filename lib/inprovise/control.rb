@@ -52,6 +52,20 @@ class Inprovise::Controller
     end
     private :get_value
 
+    def list_scripts(options)
+      # load all specified schemes
+      (Array === options[:scheme] ? options[:scheme] : [options[:scheme]]).each {|s| Inprovise::DSL.include(s) }
+      $stdout.puts
+      $stdout.puts "   PROVISIONING SCRIPTS"
+      $stdout.puts "   ===================="
+      Inprovise::ScriptIndex.default.scripts.sort.each do |scrname|
+        script = Inprovise::ScriptIndex.default.get(scrname)
+        if script.description || options[:all]
+          script.describe.each {|l| $stdout.puts "   #{l}" }
+        end
+      end
+    end
+
     def parse_config(cfg, opts = {})
       cfg.inject(opts) do |rc,cfg|
         k,v = cfg.split('=')

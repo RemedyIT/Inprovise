@@ -37,6 +37,7 @@ class Inprovise::ScriptRunner
     @log.say scrs.map(&:name).join(', ').yellow if Inprovise.verbosity > 0
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     context.config.command = command_name
+    scrs.each { |script| script.merge_configuration(context.config) }
     scrs.each do |script|
       send(:"execute_#{command_name}", script, context)
     end

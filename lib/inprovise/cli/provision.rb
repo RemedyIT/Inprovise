@@ -69,4 +69,16 @@ class Inprovise::Cli
     end
   end
 
+  desc 'List the available scripts. By default lists only described scripts.'
+  command :list do |clist|
+
+    clist.desc 'Path to a provisioning scheme to load'
+    clist.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
+    clist.switch [:a, :all], negatable: false, :desc => 'List all scripts (with or without description)'
+
+    clist.action do |global, options, args|
+      Inprovise::Controller.list_scripts(options)
+    end
+  end
+
 end

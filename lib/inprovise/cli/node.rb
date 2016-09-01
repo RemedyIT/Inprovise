@@ -62,8 +62,8 @@ class Inprovise::Cli
 
       cnod_list.action do |global_options,options,args|
         $stdout.puts
-        $stdout.puts "\tINFRASTRUCTURE NODES"
-        $stdout.puts "\t===================="
+        $stdout.puts "   INFRASTRUCTURE NODES"
+        $stdout.puts "   ===================="
         if args.empty?
           Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).each do |n|
             Inprovise::Cli.show_target(n, options[:details])
@@ -75,10 +75,10 @@ class Inprovise::Cli
               when Inprovise::Infrastructure::Node
                 Inprovise::Cli.show_target(tgt, options[:details])
               when Inprovise::Infrastructure::Group
-                $stdout.puts "\t#{tgt.to_s}"
-                $stdout.puts "\t#{'-' * tgt.to_s.size}"
+                $stdout.puts "   #{tgt.to_s}"
+                $stdout.puts "   #{'-' * tgt.to_s.size}"
                 tgt.targets.each {|n| Inprovise::Cli.show_target(n, options[:details]) }
-                $stdout.puts "\t#{'-' * tgt.to_s.size}"
+                $stdout.puts "   #{'-' * tgt.to_s.size}"
               else
                 $stdout.puts "ERROR: #{a} is unknown".red
             end

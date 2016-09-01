@@ -72,7 +72,7 @@ class Inprovise::Logger
   def say(msg, color=nil, stream=$stdout)
     msg.to_s.split("\n").each do |line|
       out = color ? line.send(color) : line
-      Thread.exclusive { stream.print "#{@node.to_s} [#{@task.bold}] " if @nl; stream.puts "#{out}" }
+      Thread.exclusive { stream.puts unless @nl; stream.puts "#{@node.to_s} [#{@task.bold}] #{out}" }
       @nl = true
     end
   end
