@@ -233,8 +233,8 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
   end
 
   def self.json_create(o)
-    data = o[:data]
-    new(data[:name], data[:config])
+    data = o['data']
+    new(data['name'], Inprovise::Infrastructure.symbolize_keys(data['config']))
   end
 
   private

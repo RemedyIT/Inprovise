@@ -61,7 +61,7 @@ class Inprovise::Infrastructure::Group < Inprovise::Infrastructure::Target
   end
 
   def self.json_create(o)
-    data = o[:data]
-    new(data[:name], data[:config], data[:targets])
+    data = o['data']
+    new(data['name'], Inprovise::Infrastructure.symbolize_keys(data['config']), data['targets'])
   end
 end
