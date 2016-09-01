@@ -41,6 +41,8 @@ Inprovise::CmdHelper.define('linux') do
   def sudo
     return self if @exec == :sudo_run
     @sudo ||= self.class.new(@channel, true)
+    @sudo.set_cwd(@cwd)
+    @sudo
   end
 
   # file management
@@ -83,7 +85,7 @@ Inprovise::CmdHelper.define('linux') do
     begin
       @channel.exists?(path)
     rescue
-      exec(%{if [ -f #{path} ]; then echo "true"; else echo "false"; fi}).strip == 'true'
+      exec(%{if [ -f #{path} ]; then echo true; else echo false; fi}).strip == 'true'
     end
   end
 
@@ -179,7 +181,7 @@ Inprovise::CmdHelper.define('linux') do
   end
 
   def sudo_run(cmd, forcelog=false)
-    @channel.run("sudo #{cmd}", forcelog)
+    @channel.run(%{sudo sh -c "#{cmd}"}, forcelog)
   end
 
 end
