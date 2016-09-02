@@ -15,7 +15,7 @@ class Inprovise::Cli
       cgrp_add.flag [:t, :target], :arg_name => 'NAME', :multiple => true, :desc => 'Add a known target (node or group) to this new group.'
       cgrp_add.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the group.'
 
-      cgrp_add.action do |global,options,args|
+      cgrp_add.action do |_global,options,args|
         raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
         Inprovise::Controller.run(:add, options, :group, *args)
         Inprovise::Controller.wait!
@@ -27,7 +27,7 @@ class Inprovise::Cli
     cgrp.arg_name 'GROUP[ GROUP [...]]'
     cgrp.command :remove do |cgrp_del|
 
-      cgrp_del.action do |global,options,args|
+      cgrp_del.action do |_global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
         Inprovise::Controller.run(:remove, options, :group, *args)
         Inprovise::Controller.wait!
@@ -43,7 +43,7 @@ class Inprovise::Cli
       cgrp_update.switch [:r, :reset], negatable: false, :desc => 'Reset configuration before update (default is to merge updates)'
       cgrp_update.flag [:t, :target], :arg_name => 'NAME', :multiple => true, :desc => 'Add a known target (node or group) to the group(s)'
 
-      cgrp_update.action do |global,options,args|
+      cgrp_update.action do |_global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
         Inprovise::Controller.run(:update, options, :group, *args)
         Inprovise::Controller.wait!
@@ -55,9 +55,9 @@ class Inprovise::Cli
     cgrp.command :list do |cgrp_list|
       cgrp_list.switch [:d, :details], negatable: false, :desc => 'Show group details'
 
-      cgrp_list.action do |global_options,options,args|
-        $stdout.puts "   INFRASTRUCTURE GROUPS"
-        $stdout.puts "   ====================="
+      cgrp_list.action do |_global,options,args|
+        $stdout.puts '   INFRASTRUCTURE GROUPS'
+        $stdout.puts '   ====================='
         if args.empty?
           Inprovise::Infrastructure.list(Inprovise::Infrastructure::Group).each do |g|
             Inprovise::Cli.show_target(g, options[:details])

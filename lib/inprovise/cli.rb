@@ -42,7 +42,7 @@ class Inprovise::Cli
 
   desc 'Initialize Inprovise project.'
   command :init do |cinit|
-    cinit.action do |global,options,args|
+    cinit.action do |_global,_options,_args|
       raise RuntimeError, 'Cannot initialize existing project directory.' if File.exists?(Inprovise::INFRA_FILE)
       raise RuntimeError, "Default scheme #{Inprovise.default_scheme} already exists." if File.exists?(Inprovise.default_scheme)
       begin
@@ -57,7 +57,7 @@ class Inprovise::Cli
     end
   end
 
-  pre do |global,command,options,args|
+  pre do |global,command,_options,_args|
     # Pre logic here
     # Return true to proceed; false to abort and not call the
     # chosen command
@@ -79,11 +79,11 @@ class Inprovise::Cli
     true
   end
 
-  post do |global,command,options,args|
-    # Post logic here
-    # Use skips_post before a command to skip this
-    # block on that command only
-  end
+  # post do |global,command,options,args|
+  #   # Post logic here
+  #   # Use skips_post before a command to skip this
+  #   # block on that command only
+  # end
 
   on_error do |exception|
     # Error logic here
@@ -96,7 +96,7 @@ class Inprovise::Cli
   end
 
   def self.show_target(tgt, details=false)
-    $stdout.puts "   #{tgt.to_s}"
+    $stdout.puts "   #{tgt}"
     if details
       $stdout.puts "   \t"+JSON.pretty_generate(tgt.config).split("\n").join("\n   \t")
     end

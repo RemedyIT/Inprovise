@@ -47,7 +47,7 @@ module Inprovise::CmdHelper
     nil
   end
 
-  def env_reference(varname)
+  def env_reference(_varname)
     nil
   end
 
@@ -56,7 +56,7 @@ module Inprovise::CmdHelper
   end
 
   # *must* return previous value
-  def set_cwd(path)
+  def set_cwd(_path)
     nil
   end
 
@@ -83,7 +83,7 @@ module Inprovise::CmdHelper
 
   # basic commands
 
-  def echo(arg)
+  def echo(_arg)
     nil
   end
 
@@ -91,59 +91,59 @@ module Inprovise::CmdHelper
     echo(env_reference(var))
   end
 
-  def cat(path)
+  def cat(_path)
     nil
   end
 
-  def hash_for(path)
+  def hash_for(_path)
     nil
   end
 
-  def mkdir(path)
+  def mkdir(_path)
     nil
   end
 
-  def exists?(path)
+  def exists?(_path)
     false
   end
 
-  def file?(path)
+  def file?(_path)
     false
   end
 
-  def directory?(path)
+  def directory?(_path)
     false
   end
 
-  def copy(from, to)
+  def copy(_from, _to)
     nil
   end
 
-  def move(from, to)
+  def move(_from, _to)
     nil
   end
 
-  def delete(path)
+  def delete(_path)
     nil
   end
 
-  def permissions(path)
+  def permissions(_path)
     0
   end
 
-  def set_permissions(path, perm)
+  def set_permissions(_path, _perm)
     nil
   end
 
-  def owner(path)
+  def owner(_path)
     nil
   end
 
-  def set_owner(path, user, group=nil)
+  def set_owner(_path, _user, _group=nil)
     nil
   end
 
-  def binary_exists?(bin)
+  def binary_exists?(_bin)
     false
   end
 

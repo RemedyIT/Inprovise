@@ -45,34 +45,30 @@ Inprovise::CmdChannel.define('ssh') do
     sftp.mkdir!(path)
   end
 
-  def exists?(path)
-    @node.log.remote("SFTP.EXISTS?: #{path}") if Inprovise.verbosity > 1
+  def path_check(path, type=nil)
     begin
-      sftp.stat!(path) != nil
+      stat = sftp.stat!(path)
+      stat != nil && (type.nil? || stat.symbolic_type == type)
     rescue Net::SFTP::StatusException => ex
       raise ex unless ex.code == Net::SFTP::Response::FX_NO_SUCH_FILE
       false
     end
+  end
+  private :path_check
+
+  def exists?(path)
+    @node.log.remote("SFTP.EXISTS?: #{path}") if Inprovise.verbosity > 1
+    path_check(path)
   end
 
   def file?(path)
     @node.log.remote("SFTP.FILE?: #{path}") if Inprovise.verbosity > 1
-    begin
-      sftp.stat!(path).symbolic_type == :regular
-    rescue Net::SFTP::StatusException => ex
-      raise ex unless ex.code == Net::SFTP::Response::FX_NO_SUCH_FILE
-      false
-    end
+    path_check(path, :regular)
   end
 
   def directory?(path)
     @node.log.remote("SFTP.DIRECTORY?: #{path}") if Inprovise.verbosity > 1
-    begin
-      sftp.stat!(path).symbolic_type == :directory
-    rescue Net::SFTP::StatusException => ex
-      raise ex unless ex.code == Net::SFTP::Response::FX_NO_SUCH_FILE
-      false
-    end
+    path_check(path, :directory)
   end
 
   def content(path)
@@ -142,42 +138,58 @@ Inprovise::CmdChannel.define('ssh') do
     log_bak = @node.log
     begin
       @node.log_to(Inprovise::Logger.new(@node, 'ssh[init]'))
-      unless exists?('./.ssh')
-        mkdir('./.ssh') rescue run('mkdir .ssh')
-        set_permissions('./.ssh', 755) rescue run('chmod 0755 ./.ssh')
-      end
+
+      # load public key
       pubkey = File.read(pubkey_path)
-      # check if public key already configured
-      if exists?('./.ssh/authorized_keys')
-        auth_keys = begin
-                      content('./.ssh/authorized_keys')
-                    rescue
-                      run('cat ./.ssh/authorized_keys')
-                    end.split("\n")
-        return if auth_keys.any? { |key| key == pubkey }
-      end
+      # quit if already installed
+      return if check_pubkey(pubkey)
+
       begin
-        @node.log.remote("APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
-        sftp.file.open('./.ssh/authorized_keys', 'a') do |f|
-          f.puts pubkey
+        # create .ssh dir if necessary
+        unless exists?('./.ssh')
+          mkdir('./.ssh')
+          set_permissions('./.ssh', 755)
         end
+        @node.log.remote("SFTP.APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
+        sftp.file.open('./.ssh/authorized_keys', 'a') { |f| f.puts pubkey }
+        # make sure the key file has the right permissions
+        set_permissions('./.ssh/authorized_keys', 644)
       rescue
         # using the SFTP option failed, let's try a more basic approach
+        run('mkdir -p .ssh')      # make sure the directory exists
+        run('chmod 0755 ./.ssh')  # and has the right permissions
+        # upload pubkey file to remote temp file
         upload_path = "inprovise-upload-#{Digest::SHA1.file(pubkey_path).hexdigest}"
         upload(pubkey_path, upload_path)
+        # concatenate temp file to ssh file
         run("cat #{upload_path} >> ./.ssh/authorized_keys")
+        # remove temp file
         run("rm #{upload_path}")
+        # make sure the key file has the right permissions
+        run('chmod 0644 ./.ssh/authorized_keys')
       end
-      set_permissions('./.ssh/authorized_keys', 644) rescue run('chmod 0644 ./.ssh/authorized_keys')
     ensure
       @node.log_to(log_bak)
     end
   end
 
+  def check_pubkey(pubkey)
+    # check if public key already configured
+    if exists?('./.ssh/authorized_keys')
+      auth_keys = begin
+                    content('./.ssh/authorized_keys')
+                  rescue
+                    run('cat ./.ssh/authorized_keys')
+                  end.split("\n")
+      return auth_keys.any? { |key| key == pubkey }
+    end
+    false
+  end
+
   def execute(cmd, forcelog=false)
     @node.log.remote("SSH: #{cmd}") if Inprovise.verbosity > 1 || forcelog
     output = ''
-    connection.exec! cmd do |channel, stream, data|
+    connection.exec! cmd do |_channel, stream, data|
       output << data if stream == :stdout
       data.split("\n").each do |line|
         @node.log.send(stream, line, forcelog)

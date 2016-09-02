@@ -48,17 +48,17 @@ module Inprovise::CmdChannel
 
   # command execution (MANDATORY)
 
-  def run(command, forcelog=false)
+  def run(_command, _forcelog=false)
     raise RuntimeError, 'UNIMPLEMENTED'
   end
 
   # MANDATORY file management routines
 
-  def upload(from, to)
+  def upload(_from, _to)
     raise RuntimeError, 'UNIMPLEMENTED'
   end
 
-  def download(from, to)
+  def download(_from, _to)
     raise RuntimeError, 'UNIMPLEMENTED'
   end
 

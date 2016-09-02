@@ -253,7 +253,7 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
       @history << {cmd:cmd, output:output}
       output
     rescue Exception
-      raise RuntimeError, "Failed to communicate with [#{self.to_s}]"
+      raise RuntimeError, "Failed to communicate with [#{self}]"
     end
   end
 

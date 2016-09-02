@@ -19,7 +19,7 @@ class Inprovise::Template
   end
 
   def render_to_tempfile(locals={})
-    basename = @path.respond_to?(:call) ? 'inprovise-inline-tpl' : File.basename(@path).gsub('.', '-')
+    basename = @path.respond_to?(:call) ? 'inprovise-inline-tpl' : File.basename(@path).tr('.', '-')
     file = Tempfile.new(basename)
     file.write render(locals)
     file.close

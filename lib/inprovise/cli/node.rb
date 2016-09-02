@@ -18,7 +18,7 @@ class Inprovise::Cli
       cnod_add.switch [:sniff], :default_value => true, :desc => 'Enable or disable running sniffers'
       cnod_add.flag [:g, :group], :arg_name => 'GROUP', :multiple => true, :desc => 'Existing infrastructure group to add new node to.'
 
-      cnod_add.action do |global,options,args|
+      cnod_add.action do |_global,options,args|
         raise ArgumentError, 'Missing or too many arguments!' unless args.size == 1
         Inprovise::Controller.run(:add, options, :node, *args)
         Inprovise::Controller.wait!
@@ -30,7 +30,7 @@ class Inprovise::Cli
     cnod.arg_name 'NODE[ NODE [...]]'
     cnod.command :remove do |cnod_del|
 
-      cnod_del.action do |global,options,args|
+      cnod_del.action do |_global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
         Inprovise::Controller.run(:remove, options, :node, *args)
         Inprovise::Controller.wait!
@@ -48,7 +48,7 @@ class Inprovise::Cli
       cnod_update.switch [:sniff], :default_value => true, :desc => 'Enable or disable running sniffers'
       cnod_update.flag [:g, :group], :arg_name => 'GROUP', :multiple => true, :desc => 'Existing infrastructure group to add node(s) to.'
 
-      cnod_update.action do |global,options,args|
+      cnod_update.action do |_global,options,args|
         raise ArgumentError, 'Missing argument!' if args.empty?
         Inprovise::Controller.run(:update, options, :node, *args)
         Inprovise::Controller.wait!
@@ -60,10 +60,10 @@ class Inprovise::Cli
     cnod.command :list do |cnod_list|
       cnod_list.switch [:d, :details], negatable: false, :desc => 'Show node details'
 
-      cnod_list.action do |global_options,options,args|
+      cnod_list.action do |_global,options,args|
         $stdout.puts
-        $stdout.puts "   INFRASTRUCTURE NODES"
-        $stdout.puts "   ===================="
+        $stdout.puts '   INFRASTRUCTURE NODES'
+        $stdout.puts '   ===================='
         if args.empty?
           Inprovise::Infrastructure.list(Inprovise::Infrastructure::Node).each do |n|
             Inprovise::Cli.show_target(n, options[:details])
@@ -75,7 +75,7 @@ class Inprovise::Cli
               when Inprovise::Infrastructure::Node
                 Inprovise::Cli.show_target(tgt, options[:details])
               when Inprovise::Infrastructure::Group
-                $stdout.puts "   #{tgt.to_s}"
+                $stdout.puts "   #{tgt}"
                 $stdout.puts "   #{'-' * tgt.to_s.size}"
                 tgt.targets.each {|n| Inprovise::Cli.show_target(n, options[:details]) }
                 $stdout.puts "   #{'-' * tgt.to_s.size}"
