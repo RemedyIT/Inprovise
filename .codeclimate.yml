@@ -7,6 +7,10 @@ engines:
     exclude_paths:
     - "lib/inprovise/node.rb"
     - "lib/inprovise/control.rb"
+    - "lib/inprovise/cli/provision.rb"
+    - "lib/inprovise/cli/node.rb"
+    - "lib/inprovise/cli/group.rb"
+    - "lib/inprovise/helper/linux.rb"
   rubocop:
     enabled: true
     checks:
