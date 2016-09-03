@@ -202,7 +202,7 @@ class Inprovise::Controller
     end
   end
 
-  def remove_node(options, *names)
+  def remove_node(_options, *names)
     names.each do |name|
       node = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Invalid node #{name}" unless node && node.is_a?(Inprovise::Infrastructure::Node)
@@ -243,7 +243,7 @@ class Inprovise::Controller
     end
   end
 
-  def remove_group(options, *names)
+  def remove_group(_options, *names)
     names.each do |name|
       grp = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Invalid group #{name}" unless grp && grp.is_a?(Inprovise::Infrastructure::Group)

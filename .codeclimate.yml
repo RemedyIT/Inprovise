@@ -1,0 +1,18 @@
+languages:
+  Ruby: true
+  JavaScript: true
+  PHP: true
+  Python: true
+engines:
+  duplication:
+    enabled: true
+    exclude_paths:
+    - "lib/inprovise/node.rb"
+    - "lib/inprovise/control.rb"
+  rubocop:
+    enabled: true
+    checks:
+      Rubocop/Lint/RescueException:
+        enabled: false
+      Rubocop/Metrics/ClassLength:
+        enabled: false
