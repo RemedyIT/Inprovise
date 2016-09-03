@@ -14,3 +14,6 @@ engines:
         enabled: false
       Rubocop/Metrics/ClassLength:
         enabled: false
+ratings:
+   paths:
+   - "lib/**/*"
