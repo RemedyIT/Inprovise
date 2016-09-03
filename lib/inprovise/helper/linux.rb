@@ -101,7 +101,7 @@ Inprovise::CmdHelper.define('linux') do
   def directory?(path)
     path = real_path(path)
     begin
-      @channel.file?(path)
+      @channel.directory?(path)
     rescue
       (exec("stat --format=%f #{path}").chomp.hex & 0x4000) == 0x4000
     end
