@@ -53,8 +53,6 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     end
   end
 
-  # :nocov:
-
   # file management
 
   def upload(from, to)
@@ -175,8 +173,6 @@ class Inprovise::Infrastructure::Node < Inprovise::Infrastructure::Target
     log.execute("BINARY_EXISTS?: #{rc}") if Inprovise.verbosity > 0
     rc
   end
-
-  # :nocov:
 
   def log
     @log ||= Inprovise::Logger.new(self, nil)

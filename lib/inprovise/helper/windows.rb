@@ -5,6 +5,8 @@
 
 require 'digest/sha1'
 
+# :nocov:
+
 Inprovise::CmdHelper.define('windows') do
 
   # platform properties
@@ -125,3 +127,5 @@ Inprovise::CmdHelper.define('windows') do
   end
 
 end
+
+# :nocov:

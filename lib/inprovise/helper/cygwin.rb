@@ -3,6 +3,8 @@
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
 
+# :nocov:
+
 Inprovise::CmdHelper.define('cygwin', Inprovise::CmdHelper.implementations['linux']) do
 
   def initialize(channel)
@@ -41,3 +43,6 @@ Inprovise::CmdHelper.define('cygwin', Inprovise::CmdHelper.implementations['linu
   # basic commands
 
 end
+
+# :nocov:
+

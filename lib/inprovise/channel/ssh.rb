@@ -7,6 +7,8 @@ require 'net/ssh'
 require 'net/sftp'
 require 'digest/sha1'
 
+# :nocov:
+
 Inprovise::CmdChannel.define('ssh') do
 
   def initialize(node)
@@ -212,3 +214,6 @@ Inprovise::CmdChannel.define('ssh') do
   end
 
 end
+
+# :nocov:
+

@@ -3,6 +3,8 @@
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
 
+# :nocov:
+
 Inprovise::CmdHelper.define('linux') do
 
   def initialize(channel, sudo=false)
@@ -185,3 +187,6 @@ Inprovise::CmdHelper.define('linux') do
   end
 
 end
+
+# :nocov:
+
