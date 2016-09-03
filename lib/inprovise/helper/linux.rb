@@ -48,11 +48,11 @@ Inprovise::CmdHelper.define('linux') do
   # file management
 
   def upload(from, to)
-    @channel.upload(real_path(from), real_path(to))
+    @channel.upload(from, real_path(to))
   end
 
   def download(from, to)
-    @channel.download(real_path(from), real_path(to))
+    @channel.download(real_path(from), to)
   end
 
   # basic commands
