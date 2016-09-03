@@ -11,6 +11,7 @@ engines:
     - "lib/inprovise/cli/node.rb"
     - "lib/inprovise/cli/group.rb"
     - "lib/inprovise/helper/linux.rb"
+    - "lib/inprovise/channel/ssh.rb"
   rubocop:
     enabled: true
     checks:
