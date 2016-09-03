@@ -5,6 +5,8 @@
 
 Inprovise::Sniffer.define('platform') do
 
+  # :nocov:
+
   action('helper') do |attrs|
     # determin the best CmdHelper if not user defined
     attrs[:helper] = case attrs[:os]
@@ -38,6 +40,8 @@ Inprovise::Sniffer.define('platform') do
     trigger "sniff[#{attrs[:os]}]:main", attrs
     (node.config[:attributes][:platform] ||= {}).merge!(attrs)
   end
+
+  # :nocov:
 
 end
 

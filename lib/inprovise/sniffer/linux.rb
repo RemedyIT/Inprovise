@@ -5,6 +5,8 @@
 
 Inprovise::Sniffer.define('linux', false) do
 
+  # :nocov:
+
   action('main') do |attrs|
     attrs[:machine] = run('uname -m').chomp
     if remote('/etc/os-release').exists?
@@ -60,5 +62,7 @@ Inprovise::Sniffer.define('linux', false) do
       end
     end
   end
+
+  # :nocov:
 
 end

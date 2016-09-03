@@ -5,6 +5,8 @@
 
 Inprovise::Sniffer.define('windows', false) do
 
+  # :nocov:
+
   action('main') do |attrs|
     attrs[:machine] = env('PROCESSOR_ARCHITECTURE').chomp =~ /amd64/i ? 'x86_64' : 'x86'
     osver = run('cmd /c ver').strip
@@ -28,5 +30,7 @@ Inprovise::Sniffer.define('windows', false) do
                              end
     end
   end
+
+  # :nocov:
 
 end
