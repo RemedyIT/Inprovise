@@ -1,0 +1,27 @@
+version: "master-{build}"
+
+os: Windows Server 2012 R2
+platform:
+  - x64
+
+environment:
+  matrix:
+    - ruby_version: "21"
+
+branches:
+  only:
+    - master
+
+install:
+  - ps: $env:PATH="C:\Ruby$env:ruby_version\bin;$env:PATH"
+  - ps: Write-Host $env:PATH
+  - ps: ruby --version
+  - ps: gem --version
+  - ps: gem install bundler --quiet --no-ri --no-rdoc
+  - ps: bundler --version
+
+build_script:
+  - bundle install || bundle install || bundle install
+
+test_script:
+  - bundle exec rake test
