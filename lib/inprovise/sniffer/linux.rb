@@ -13,31 +13,42 @@ Inprovise::Sniffer.define('linux', false) do
       trigger 'sniff[linux]:lsb_release', attrs
     elsif binary_exists?('lsb-release')
       trigger 'sniff[linux]:lsb_release', attrs, 'lsb-release'
-    elsif remote('/etc/os-release').exists?
-      trigger 'sniff[linux]:os-release', attrs
-    elsif remote('/etc/redhat-release').exists?
-      trigger 'sniff[linux]:redhat-release', attrs
-    elsif remote('/etc/SuSE-release').exists?
-      trigger 'sniff[linux]:suse-release', attrs
+    end
+    unless attrs[:os_distro]
+      if remote('/etc/os-release').exists?
+        trigger 'sniff[linux]:os-release', attrs
+      elsif remote('/etc/redhat-release').exists?
+        trigger 'sniff[linux]:redhat-release', attrs
+      elsif remote('/etc/SuSE-release').exists?
+        trigger 'sniff[linux]:suse-release', attrs
+      elsif remote('/etc/debian-version').exists?
+        trigger 'sniff[linux]:debian-version', attrs
+      end
     end
     attrs[:pkgman] = case attrs[:os_distro]
-                     when 'fedora', 'centos', 'rhel'
-                       binary_exists?('dnf') ? 'dnf' : 'yum'
-                     when /suse/
-                       'zypper'
-                     end
+      when 'fedora', 'centos', 'rhel'
+      binary_exists?('dnf') ? 'dnf' : 'yum'
+      when 'linuxmint', 'ubuntu', 'debian'
+      'apt'
+      when /suse/
+      'zypper'
+    end
   end
 
   action('lsb_release') do |attrs, bin='lsb_release'|
-    attrs[:os_distro] = case distro = run("#{bin} -i").chomp
-      when /RedHat/i
-      'rhel'
-      when /SUSE/i
-      run("#{bin} -d").chomp =~ /opensuse/i ? 'opensuse' : 'suse'
-      else
-      distro.downcase
+    if /distributor\s+id:\s+(.*)/i =~ run("#{bin} -i").chomp
+      attrs[:os_distro] = case distro = $1
+        when /RedHat/i
+        'rhel'
+        when /SUSE/i
+        run("#{bin} -d").chomp =~ /opensuse/i ? 'opensuse' : 'suse'
+        else
+        distro.downcase
+      end
+      if /release:\s+(.*)/i =~ run("#{bin} -r").chomp
+        attrs[:os_version] = $1
+      end
     end
-    attrs[:os_version] = run("#{bin} -r").chomp
   end
 
   action('os-release') do |attrs|
@@ -87,6 +98,11 @@ Inprovise::Sniffer.define('linux', false) do
         attrs[:os_version] = $1.strip
       end
     end
+  end
+
+  action('debian-version') do |attrs|
+    attrs[:os_distro] = 'debian'
+    attrs[:os_version] = remote('/etc/debian-version').content.strip
   end
 
   # :nocov:
