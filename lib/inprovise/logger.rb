@@ -57,8 +57,13 @@ class Inprovise::Logger
     Thread.exclusive do
       $stdout.print "#{@node.to_s} [#{@task.bold}] " if @nl
       $stdout.print msg.sub("\r", "\r".to_eol << "#{@node.to_s} [#{@task.bold}] ")
+      @nl = false
     end
-    @nl = false
+  end
+
+  def println(msg)
+    print(msg)
+    Thread.exclusive { $stdout.puts; @nl = true }
   end
 
   def stdout(msg, force=false)
@@ -72,8 +77,7 @@ class Inprovise::Logger
   def say(msg, color=nil, stream=$stdout)
     msg.to_s.split("\n").each do |line|
       out = color ? line.send(color) : line
-      Thread.exclusive { stream.puts unless @nl; stream.puts "#{@node.to_s} [#{@task.bold}] #{out}" }
-      @nl = true
+      Thread.exclusive { stream.puts unless @nl; stream.puts "#{@node.to_s} [#{@task.bold}] #{out}"; @nl = true }
     end
   end
 end

@@ -1,12 +1,5 @@
-#!/bin/sh
-
-/usr/bin/env ruby -x $0 $@
-
-exit $?
-
+#!/usr/bin/env ruby
 #!ruby
-#---------------------------------
-#---------------------------------
 require_relative '../lib/inprovise'
 
 exit Inprovise::Cli.run(ARGV)
