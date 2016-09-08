@@ -9,7 +9,11 @@ Inprovise::Sniffer.define('linux', false) do
 
   action('main') do |attrs|
     attrs[:machine] = run('uname -m').chomp
-    if remote('/etc/os-release').exists?
+    if binary_exists?('lsb_release')
+      trigger 'sniff[linux]:lsb_release', attrs
+    elsif binary_exists?('lsb-release')
+      trigger 'sniff[linux]:lsb_release', attrs, 'lsb-release'
+    elsif remote('/etc/os-release').exists?
       trigger 'sniff[linux]:os-release', attrs
     elsif remote('/etc/redhat-release').exists?
       trigger 'sniff[linux]:redhat-release', attrs
@@ -22,6 +26,18 @@ Inprovise::Sniffer.define('linux', false) do
                      when /suse/
                        'zypper'
                      end
+  end
+
+  action('lsb_release') do |attrs, bin='lsb_release'|
+    attrs[:os_distro] = case distro = run("#{bin} -i").chomp
+      when /RedHat/i
+      'rhel'
+      when /SUSE/i
+      run("#{bin} -d").chomp =~ /opensuse/i ? 'opensuse' : 'suse'
+      else
+      distro.downcase
+    end
+    attrs[:os_version] = run("#{bin} -r").chomp
   end
 
   action('os-release') do |attrs|
@@ -59,6 +75,16 @@ Inprovise::Sniffer.define('linux', false) do
                               when /centos/
                                 'centos'
                               end
+      end
+    end
+  end
+
+  action('suse-release') do |attrs|
+    data = remote('/etc/SuSE-release').content.split("\n").collect {|l| l.strip }
+    attrs[:os_distro] = data.shift.split(' ').first.downcase
+    data.each do |l|
+      if data =~ /\AVERSION\s*=\s*(.*)/i
+        attrs[:os_version] = $1.strip
       end
     end
   end
