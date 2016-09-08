@@ -150,12 +150,12 @@ Inprovise::CmdChannel.define('ssh') do
         # create .ssh dir if necessary
         unless exists?('./.ssh')
           mkdir('./.ssh')
-          set_permissions('./.ssh', 755)
+          set_permissions('./.ssh', 0755)
         end
         @node.log.remote("SFTP.APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
         sftp.file.open('./.ssh/authorized_keys', 'a') { |f| f.puts pubkey }
         # make sure the key file has the right permissions
-        set_permissions('./.ssh/authorized_keys', 644)
+        set_permissions('./.ssh/authorized_keys', 0644)
       rescue
         # using the SFTP option failed, let's try a more basic approach
         run('mkdir -p .ssh')      # make sure the directory exists
