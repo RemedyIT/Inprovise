@@ -87,11 +87,13 @@ class Inprovise::Controller
       begin
         case command
         when :add, :remove, :update
-          case args.shift
-          when :node
-            run_node_command(command, options, *args)
-          when :group
-            run_group_command(command, options, *args)
+          target = args.shift
+          if command == :remove
+            run_infra_command(command, target, *args)
+          else
+            tgtcfg = parse_config(options[:config])
+            tgtcfg[:credentials] = parse_config(options[:credential]) if target == :node && options.has_key?(:credential)
+            run_infra_command(command, target, options, tgtcfg, *args)
           end
         else # :apply, :revert, :validate or :trigger
           load_schemes(options)
@@ -129,18 +131,13 @@ class Inprovise::Controller
       end
     end
 
-    def run_node_command(cmd, options, *names)
-      add(Inprovise::Controller.new).send(:"#{cmd}_node", options, *names)
+    def run_infra_command(cmd, target, *args)
+      add(Inprovise::Controller.new).send(:"#{cmd}_#{target}", *args)
       Inprovise::Infrastructure.save
     end
 
-    def run_group_command(cmd, options, *names)
-      add(Inprovise::Controller.new).send(:"#{cmd}_group", options, *names)
-      Inprovise::Infrastructure.save
-    end
-
-    def run_provisioning_command(command, script, opts, *targets)
-      add(Inprovise::Controller.new).run_provisioning_command(command, script, opts, *targets)
+    def run_provisioning_command(command, script, cfg, *targets)
+      add(Inprovise::Controller.new).run_provisioning_command(command, script, cfg, *targets)
     end
 
   end
@@ -163,11 +160,11 @@ class Inprovise::Controller
     Inprovise.log.local('Done!') if Inprovise.verbosity > 0
   end
 
-  def run_provisioning_command(command, cmdtgt, opts, *names)
+  def run_provisioning_command(command, cmdtgt, cmdcfg, *names)
     # get intended infrastructure targets/config tuples
     targets = get_targets(*names)
     # create runner/config for each target/config
-    runners = targets.map do |tgt, cfg|
+    runners = targets.map do |tgt, tgtcfg|
       @targets << tgt
       [
         if command == :trigger
@@ -175,21 +172,20 @@ class Inprovise::Controller
         else
           Inprovise::ScriptRunner.new(tgt, Inprovise::ScriptIndex.default.get(cmdtgt), Inprovise.skip_dependencies)
         end,
-        cfg
+        tgtcfg
       ]
     end
     # execute runners
     if Inprovise.sequential
-      runners.each {|runner, cfg| exec(runner, command, cfg.merge(opts)) }
+      runners.each {|runner, tgtcfg| exec(runner, command, tgtcfg.merge(cmdcfg)) }
     else
-      @threads = runners.map {|runner, cfg| Thread.new { exec(runner, command, cfg.merge(opts)) } }
+      @threads = runners.map {|runner, tgtcfg| Thread.new { exec(runner, command, tgtcfg.merge(cmdcfg)) } }
     end
   end
 
-  def add_node(options, *names)
-    opts = self.class.parse_config(options[:config], { host: options[:address] })
-    opts[:credentials] = self.class.parse_config(options[:credential])
-    @targets << (node = Inprovise::Infrastructure::Node.new(names.first, opts))
+  def add_node(options, nodecfg, name)
+    nodecfg.merge!({ host: options[:address] })
+    @targets << (node = Inprovise::Infrastructure::Node.new(name, nodecfg))
 
     Inprovise.log.local("Adding #{node}")
 
@@ -202,7 +198,7 @@ class Inprovise::Controller
     end
   end
 
-  def remove_node(_options, *names)
+  def remove_node(*names)
     names.each do |name|
       node = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Invalid node #{name}" unless node && node.is_a?(Inprovise::Infrastructure::Node)
@@ -213,26 +209,23 @@ class Inprovise::Controller
     end
   end
 
-  def update_node(options, *names)
+  def update_node(options, nodecfg, *names)
     @targets = names.collect do |name|
       tgt = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Unknown target [#{name}]" unless tgt
       tgt.targets
     end.flatten.uniq
-    opts = self.class.parse_config(options[:config])
-    opts[:credentials] = self.class.parse_config(options[:credential])
     if Inprovise.sequential || (!options[:sniff]) || @targets.size == 1
-      @targets.each {|tgt| run_target_update(tgt, opts.dup, options) }
+      @targets.each {|tgt| run_node_update(tgt, nodecfg.dup, options) }
     else
-      threads = @targets.map {|tgt| Thread.new { run_target_update(tgt, opts.dup, options) } }
+      threads = @targets.map {|tgt| Thread.new { run_node_update(tgt, nodecfg.dup, options) } }
       threads.each {|t| t.join }
     end
   end
 
-  def add_group(options, *names)
+  def add_group(options, grpcfg, name)
     options[:target].each {|t| raise ArgumentError, "Unknown target [#{t}]" unless Inprovise::Infrastructure.find(t) }
-    opts = self.class.parse_config(options[:config])
-    grp = Inprovise::Infrastructure::Group.new(names.first, opts, options[:target])
+    grp = Inprovise::Infrastructure::Group.new(name, grpcfg, options[:target])
 
     Inprovise.log.local("Adding #{grp}")
 
@@ -243,7 +236,7 @@ class Inprovise::Controller
     end
   end
 
-  def remove_group(_options, *names)
+  def remove_group(*names)
     names.each do |name|
       grp = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Invalid group #{name}" unless grp && grp.is_a?(Inprovise::Infrastructure::Group)
@@ -254,13 +247,12 @@ class Inprovise::Controller
     end
   end
 
-  def update_group(options, *names)
+  def update_group(options, grpcfg, *names)
     groups = names.collect do |name|
       tgt = Inprovise::Infrastructure.find(name)
       raise ArgumentError, "Invalid group #{name}" unless tgt && tgt.is_a?(Inprovise::Infrastructure::Group)
       tgt
     end
-    opts = self.class.parse_config(options[:config])
     grp_tgts = options[:target].collect do |tnm|
       tgt = Inprovise::Infrastructure.find(tnm)
       raise ArgumentError, "Unknown target #{tnm}" unless tgt
@@ -270,7 +262,7 @@ class Inprovise::Controller
       Inprovise.log.local("Updating #{grp}")
 
       grp.config.clear if options[:reset]
-      grp.config.merge!(opts)
+      grp.config.merge!(grpcfg)
       grp_tgts.each {|gt| gt.add_to(grp) }
     end
   end
@@ -292,37 +284,37 @@ class Inprovise::Controller
     end
   end
 
-  def exec(runner, command, opts)
+  def exec(runner, command, cfg)
     if Inprovise.demonstrate
-      runner.demonstrate(command, opts)
+      runner.demonstrate(command, cfg)
     else
-      runner.execute(command, opts)
+      runner.execute(command, cfg)
     end
   end
 
-  def run_target_update(tgt, tgt_opts, options)
-    Inprovise.log.local("Updating #{tgt}")
+  def run_node_update(node, nodecfg, options)
+    Inprovise.log.local("Updating #{node}")
 
     if options[:reset]
       # preserve :host
-      tgt_opts[:host] = tgt.get(:host) if tgt.get(:host)
+      nodecfg[:host] = node.get(:host) if node.get(:host)
       # preserve :user if no new user specified
-      tgt_opts[:user] = tgt.get(:user) if tgt.get(:user) && !tgt_opts.has_key?(:user)
+      nodecfg[:user] = node.get(:user) if node.get(:user) && !nodecfg.has_key?(:user)
       # preserve sniffed attributes when not running sniffers now
       unless options[:sniff]
-        tgt_opts[:attributes] = tgt.get(:attributes)
+        nodecfg[:attributes] = node.get(:attributes)
       end
-      # clear the target config
-      tgt.config.clear
+      # clear the node config
+      node.config.clear
     end
-    tgt.config.merge!(tgt_opts) # merge new + preserved config
+    node.config.merge!(nodecfg) # merge new + preserved config
     # force update of user if specified
-    tgt.prepare_connection_for_user!(tgt_opts[:user]) if tgt_opts[:user]
-    Inprovise::Sniffer.run_sniffers_for(tgt) if options[:sniff]
+    node.prepare_connection_for_user!(nodecfg[:user]) if nodecfg[:user]
+    Inprovise::Sniffer.run_sniffers_for(node) if options[:sniff]
     options[:group].each do |g|
       grp = Inprovise::Infrastructure.find(g)
       raise ArgumentError, "Unknown group #{g}" unless grp
-      tgt.add_to(grp)
+      node.add_to(grp)
     end
   end
 
