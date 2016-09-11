@@ -5,6 +5,8 @@
 
 module Inprovise::CmdChannel
 
+  class Exception < ::RuntimeError; end
+
   class << self
 
     def implementations

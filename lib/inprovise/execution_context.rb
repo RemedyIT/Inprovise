@@ -4,7 +4,6 @@
 # License::   Distributes under the same license as Ruby
 
 require 'open3'
-require 'ostruct'
 
 class Inprovise::ExecutionContext
 
@@ -49,7 +48,7 @@ class Inprovise::ExecutionContext
       @context.env(var)
     end
 
-    def log(msg=nil)
+    def log(msg=nil, color=nil)
       @context.log(msg)
     end
 
@@ -97,16 +96,9 @@ class Inprovise::ExecutionContext
     @node = node
     @log = log
     @node.log_to(@log)
-    @config = init_config(config || @node.config)
+    @config = Inprovise::Config.new(config || @node.config)
     @index = index
     @script = nil
-  end
-
-  def init_config(hash)
-    hash.to_h.reduce(OpenStruct.new(hash)) do |os,(k,v)|
-      os[k] = init_config(v) if Hash === v
-      os
-    end
   end
 
   def exec(blk, *args)
@@ -136,7 +128,13 @@ class Inprovise::ExecutionContext
     return self if user.nil? || user == node.user
     new_node = @node.for_user(user)
     new_log = @log.clone_for_node(new_node)
-    self.class.new(new_node, new_log, @index, @config)
+    self.dup.setup_for_node!(new_node, new_log)
+  end
+
+  def setup_for_node!(node, log)
+    @node = node
+    @log = log
+    self
   end
 
   def run_local(cmd)
@@ -158,8 +156,8 @@ class Inprovise::ExecutionContext
     @node.env(var)
   end
 
-  def log(msg=nil)
-    @log.log(msg) if msg
+  def log(msg=nil, color=nil)
+    @log.log(msg, color) if msg
     @log
   end
 
@@ -216,7 +214,7 @@ class Inprovise::ExecutionContext
     curtask = @node.log.set_task(action_ref)
     curscript = @script
     @script = pkg
-    @script.merge_configuration(self.config)
+    @script.update_configuration(self)
     begin
       exec(action, *args)
     ensure

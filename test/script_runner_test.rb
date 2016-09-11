@@ -100,8 +100,8 @@ describe Inprovise::ScriptRunner do
 
       it 'validates before and after applying a script' do
         @runner = Inprovise::ScriptRunner.new(@node, 'validate')
-        @runner.expects(:exec).once
-               .with() { |script, cmd, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context && cmd == :apply }
+        @runner.expects(:exec).twice
+               .with() { |script, cmd, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context && (cmd == :configure || cmd == :apply) }
         @runner.expects(:is_valid?).twice
                .with() { |script, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context }
                .returns(false, true)
@@ -135,8 +135,8 @@ describe Inprovise::ScriptRunner do
 
       it 'validates before reverting a script' do
         @runner = Inprovise::ScriptRunner.new(@node, 'validate')
-        @runner.expects(:exec).once
-               .with() { |script, cmd, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context && cmd == :revert }
+        @runner.expects(:exec).twice
+               .with() { |script, cmd, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context && (cmd == :configure || cmd == :revert) }
         @runner.expects(:is_valid?).once
                .with() { |script, context| script.name.must_equal('validate') && Inprovise::ExecutionContext === context }
                .returns(true)

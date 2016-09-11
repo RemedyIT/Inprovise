@@ -12,13 +12,13 @@ module Inprovise::Infrastructure
   JSON.create_id = 'json_class'
 
   def self.symbolize_keys(hsh)
-    return hsh unless Hash === hsh
+    return hsh unless ::Hash === hsh
     hsh.reduce({}) {|h, (k,v)| h[k.to_sym] = symbolize_keys(v); h }
   end
 
   class << self
     def targets
-      @targets ||= Hash.new.extend(MonitorMixin)
+      @targets ||= ::Hash.new.extend(::MonitorMixin)
     end
     private :targets
 

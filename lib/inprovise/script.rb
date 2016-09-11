@@ -3,10 +3,8 @@
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
 
-require 'ostruct'
-
 class Inprovise::Script
-  attr_reader :name, :dependencies, :actions, :children, :user
+  attr_reader :name, :dependencies, :actions, :children, :user, :configuration
 
   class DSL
     def initialize(script)
@@ -16,10 +14,12 @@ class Inprovise::Script
     def description(desc)
       @script.description(desc)
     end
+    alias :describe :description
 
-    def configuration(cfg)
-      @script.configuration(cfg)
+    def configure(cfg=nil, &block)
+      @script.configure(cfg, &block)
     end
+    alias :configuration :configure
 
     def depends_on(*scr_names)
       @script.depends_on(*scr_names)
@@ -73,47 +73,17 @@ class Inprovise::Script
     self.description.split("\n").collect {|ld| "#{"%-25s" % nm.shift.to_s}\t#{ld.strip}"}
   end
 
-  def configuration(cfg=nil)
-    @configuration = cfg if cfg
+  def configure(cfg=nil, &definition)
+    @configuration = Inprovise::Config.new.merge!(cfg) if cfg
+    command(:configure, &definition)
     @configuration
   end
 
-  def copy_config(cfg)
-    case cfg
-    when Hash, OpenStruct
-      cfg.to_h.reduce(OpenStruct.new) { |os, (k,v)| os[k] = copy_config(v); os }
-    when Array
-      cfg.collect { |e| copy_config(e) }
-    else
-      cfg.dup rescue cfg
+  def update_configuration(context)
+    if @configuration
+      context.config[self.name.to_sym] ||= Inprovise::Config.new
+      context.config[self.name.to_sym].update!(@configuration)
     end
-  end
-  private :copy_config
-
-  def merge_config(runcfg, scrcfg)
-    return scrcfg unless runcfg
-    case runcfg
-    when Hash, OpenStruct
-      return runcfg unless scrcfg.respond_to?(:to_h)
-      return scrcfg.to_h.reduce(runcfg) do |rc, (k,v)|
-        case rc[k]
-        when Hash,OpenStruct
-          rc[k] = merge_config(rc[k], v)
-        else
-          rc[k] = v unless rc[k]
-        end
-        rc
-      end
-    else
-      return runcfg
-    end
-  end
-  private :merge_config
-
-  def merge_configuration(config)
-    return unless self.configuration
-    script_cfg = copy_config(self.configuration)
-    config[self.name.to_sym] = merge_config(config[self.name.to_sym], script_cfg)
   end
 
   def depends_on(*scr_names)

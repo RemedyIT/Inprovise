@@ -33,11 +33,13 @@ class Inprovise::ScriptRunner
   def execute(command_name, config=nil)
     Inprovise.log.local("#{COMMANDS[command_name].first} #{script.name} #{COMMANDS[command_name].last} #{@node.to_s}")
     scrs = scripts
-    scrs.reverse! if command_name.to_sym == :revert
-    @log.say scrs.map(&:name).join(', ').yellow if Inprovise.verbosity > 0
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
-    context.config.command = command_name
-    scrs.each { |script| script.merge_configuration(context.config) }
+    context.config.command = command_name.to_sym
+    scrs.each do |script|
+      execute_configuration(script, context)
+    end
+    scrs.reverse! if command_name.to_sym == :revert
+    @log.say(scrs.map(&:name).join(', '), :yellow) if Inprovise.verbosity > 0
     scrs.each do |script|
       send(:"execute_#{command_name}", script, context)
     end
@@ -47,6 +49,11 @@ class Inprovise::ScriptRunner
     @perform = false
     execute(command_name, config)
     @perform = true
+  end
+
+  def execute_configuration(script, context)
+    script.update_configuration(context)
+    exec(script, :configure, context)
   end
 
   def execute_apply(script, context)

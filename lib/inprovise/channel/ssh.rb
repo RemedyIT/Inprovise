@@ -191,11 +191,15 @@ Inprovise::CmdChannel.define('ssh') do
   def execute(cmd, forcelog=false)
     @node.log.remote("SSH: #{cmd}") if Inprovise.verbosity > 1 || forcelog
     output = ''
-    connection.exec! cmd do |_channel, stream, data|
-      output << data if stream == :stdout
-      data.split("\n").each do |line|
-        @node.log.send(stream, line, forcelog)
-      end if Inprovise.verbosity > 1 || forcelog
+    begin
+      connection.exec! cmd do |_channel, stream, data|
+        output << data if stream == :stdout
+        @node.log.send(stream, data, forcelog) if Inprovise.verbosity > 1 || forcelog
+      end
+    rescue Net::SSH::Exception => ex
+      raise Inprovise::CmdChannel::Exception, "#{ex.message}"
+    ensure
+      @node.log.flush_all if Inprovise.verbosity > 1 || forcelog
     end
     output
   end

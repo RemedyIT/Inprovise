@@ -127,6 +127,7 @@ module Inprovise
 end
 
 require_relative './inprovise/version'
+require_relative './inprovise/config'
 require_relative './inprovise/logger'
 require_relative './inprovise/cmd_channel'
 require_relative './inprovise/cmd_helper'
