@@ -19,10 +19,6 @@ class Inprovise::Logger
   end
 
   def initialize(node, task)
-    @streams = {
-      :stdout => { :ios => $stdout, :buffer => [{col: nil, ln: '', cr: false}] },
-      :stderr => { :ios => $stderr, :buffer => [{col: nil, ln: '', cr: false}] }
-    }
     @node = node
     set_task(task)
   end
