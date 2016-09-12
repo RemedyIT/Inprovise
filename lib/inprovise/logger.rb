@@ -80,6 +80,17 @@ class Inprovise::Logger
   end
   private :buffer
 
+  def next_line(stream)
+    lnbuf = buffer(stream).shift || {}
+    [lnbuf[:col], lnbuf[:ln], lnbuf[:cr]]
+  end
+  private :next_line
+
+  def push_line(stream, col, ln, cr)
+    buffer(stream) << {col: col, ln: ln, cr: cr ? true : false}
+  end
+  private :push_line
+
   def put(msg, color=nil, stream=:stdout)
     streambuf = buffer(stream)
     streambuf.last[:col] ||= color
@@ -94,30 +105,26 @@ class Inprovise::Logger
   private :puts
 
   def do_print(stream=:stdout)
-    streambuf = buffer(stream)
-    while lnbuf = streambuf.shift
-      clear_to_eol = lnbuf[:cr]
-      lnbuf[:ln].scan(/([^\r]*)(\r)?/) do |txt, cr|
-        # do we have a (full) line to print?
-        if cr || !streambuf.empty?
-          out = lnbuf[:col] ? txt.to_s.send(lnbuf[:col]) : txt
+    until buffer(stream).empty?
+      col, ln, cr_at_start = next_line(stream)
+      ln.scan(/([^\r]*)(\r)?/) do |txt, cr|
+        nl = buffer(stream).size > 0
+        if cr || nl
           unless txt.empty?
-            ios(stream).print "\r".to_eol if clear_to_eol
-            ios(stream).print "#{@node.to_s} [#{@task.bold}] #{out}"
+            out = col ? txt.to_s.send(col) : txt
+            ios(stream).print "\r".to_eol if cr_at_start
+            ios(stream).print "#{@node} [#{@task.bold}] #{out}"
           end
-          ios(stream).flush if cr
-          ios(stream).puts unless cr || (txt.empty? && !clear_to_eol)
-          clear_to_eol = cr ? true : false
-          break unless cr # next line or cr?
-        else
-          streambuf << if txt.empty?
-            # restart with empty line
-            {col:nil,ln:'',cr:clear_to_eol}
+          if cr
+            ios(stream).flush
           else
-            # stuff the remaining text back for a next round
-            {col:lnbuf[:col],ln:txt,cr:clear_to_eol}
+            ios(stream).puts unless txt.empty? && !cr_at_start
           end
-          return
+          cr_at_start = cr
+        else
+          # cache for later
+          push_line(stream, txt.empty? ? nil : col, txt, cr_at_start)
+          return # done printing for now
         end
       end
     end
