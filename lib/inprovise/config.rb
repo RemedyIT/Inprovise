@@ -7,29 +7,41 @@ class Inprovise::Config
 
   def initialize(other=nil)
     @table = {}
-    copy!(other.to_h) if other
+    copy!(other) if other
   end
-
-  def _k_(key)
-    Symbol === key ? key : key.to_s.to_sym
-  end
-  private :_k_
 
   def _v_(val)
     Hash === val ? self.class.new.merge!(val) : val
   end
   private :_v_
 
+  def get(key)
+    Symbol === key ? @table[key] : key.to_s.split('.').reduce(@table) { |t,k| t[k.to_sym] ||= self.class.new }
+  end
+
+  def set(key, val)
+    if Symbol === key
+      @table[key] = _v_(val)
+    else
+      vk = (path = key.to_s.split('.')).pop
+      path.reduce(@table) { |t,k| t[k.to_sym] ||= self.class.new  }[vk.to_sym] = _v_(val)
+    end
+  end
+
   def [](key)
-    @table[_k_(key)]
+    get(key)
   end
 
   def []=(key, val)
-    @table[_k_(key)] = _v_(val)
+    set(key, val)
   end
 
   def has_key?(key)
-    @table.has_key?(_k_(key))
+    if Symbol === key
+      @table.has_key?(key)
+    else
+      !(key.to_s.split('.').reduce(@table) { |t,k| t && t.has_key?(k.to_sym) && self.class === t[k.to_sym] ? t[k.to_sym] : nil }).nil?
+    end
   end
 
   def empty?
@@ -80,12 +92,15 @@ class Inprovise::Config
   end
 
   def to_h
-    @table
+    @table.reduce({}) do |hsh, (k,v)|
+      hsh[k] = self.class === v ? v.to_h : v
+      hsh
+    end
   end
 
   def method_missing(method, *args)
     if /(.*)=$/ =~ method.to_s
-      self[$1] = (args.size > 1 ? args : args.shift)
+      self[$1.to_sym] = (args.size > 1 ? args : args.shift)
     else
       self[method]
     end
