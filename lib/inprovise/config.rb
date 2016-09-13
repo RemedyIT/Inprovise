@@ -16,7 +16,12 @@ class Inprovise::Config
   private :_v_
 
   def get(key)
-    Symbol === key ? @table[key] : key.to_s.split('.').reduce(@table) { |t,k| t[k.to_sym] ||= self.class.new }
+    if Symbol === key
+      @table[key]
+    else
+      vk = (path = key.to_s.split('.')).pop
+      path.reduce(@table) { |t,k| t[k.to_sym] ||= self.class.new }[vk.to_sym]
+    end
   end
 
   def set(key, val)
