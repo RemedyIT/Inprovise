@@ -112,11 +112,7 @@ class Inprovise::ExecutionContext
   end
 
   def exec(blk, *args)
-    if args.empty?
-      DSL.new(self).instance_eval(&blk)
-    else
-      DSL.new(self).instance_exec(*args, &blk)
-    end
+    DSL.new(self).instance_exec(*args, &blk)
   end
 
   def as(user, &blk)
