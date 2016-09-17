@@ -4,10 +4,11 @@
 # License::   Distributes under the same license as Ruby
 
 class Inprovise::TriggerRunner
-  def initialize(node, action_ref_with_args)
+  def initialize(node, action_ref_with_args, skip_dependencies=false)
     @node = node
     @action_ref, @args = *parse_action_ref(action_ref_with_args)
     @log = Inprovise::Logger.new(@node, @action_ref)
+    @skip_dependencies = skip_dependencies
     @index = Inprovise::ScriptIndex.default
   end
 
@@ -33,12 +34,22 @@ class Inprovise::TriggerRunner
 
   private
 
+  def scripts(script)
+    return [script] if @skip_dependencies
+    resolver = Inprovise::Resolver.new(script, @index)
+    resolver.resolve
+    resolver.scripts
+  end
+
   def setup_configuration(script, context)
-    script.update_configuration(context)
-    context.log.set_task(script)
-    context.log.command(:configure)
-    context.script = script
-    script.command(:configure).each {|cmd| context.exec_config(cmd) }
+    script_list = scripts(script)
+    script_list.each { |scr| scr.update_configuration(context) }
+    script_list.each do |scr|
+      context.log.set_task(scr)
+      context.log.command(:configure)
+      context.script = scr
+      scr.command(:configure).each {|cmd| context.exec_config(cmd) }
+    end
   end
 
   def parse_action_ref(action_ref_with_args)

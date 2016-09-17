@@ -168,7 +168,7 @@ class Inprovise::Controller
       @targets << tgt
       [
         if command == :trigger
-          Inprovise::TriggerRunner.new(tgt, cmdtgt)
+          Inprovise::TriggerRunner.new(tgt, cmdtgt, Inprovise.skip_dependencies)
         else
           Inprovise::ScriptRunner.new(tgt, Inprovise::ScriptIndex.default.get(cmdtgt), Inprovise.skip_dependencies)
         end,
