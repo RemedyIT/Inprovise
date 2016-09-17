@@ -36,7 +36,7 @@ class Inprovise::ScriptRunner
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     context.config.command = command_name.to_sym
     scrs.each do |script|
-      execute_configuration(script, context)
+      setup_configuration(script, context)
     end
     scrs.reverse! if command_name.to_sym == :revert
     @log.say(scrs.map(&:name).join(', '), :yellow) if Inprovise.verbosity > 0
@@ -51,25 +51,32 @@ class Inprovise::ScriptRunner
     @perform = true
   end
 
-  def execute_configuration(script, context)
+  def setup_configuration(script, context)
     script.update_configuration(context)
-    exec(script, :configure, context)
+    context.log.set_task(script)
+    context.log.command(:configure)
+    context.script = script
+    script.command(:configure).each {|cmd| context.exec_config(cmd) }
   end
+  private :setup_configuration
 
   def execute_apply(script, context)
     return unless should_run?(script, :apply, context)
     exec(script, :apply, context)
     validate!(script, context)
   end
+  private :execute_apply
 
   def execute_revert(script, context)
     return unless should_run?(script, :revert, context)
     exec(script, :revert, context)
   end
+  private :execute_revert
 
   def execute_validate(script, context)
     validate!(script, context)
   end
+  private :execute_validate
 
   def should_run?(script, command_name, context)
     return false unless script.provides_command?(command_name)
@@ -80,6 +87,7 @@ class Inprovise::ScriptRunner
     return !is_present if command_name == :apply
     is_present
   end
+  private :should_run?
 
   def validate!(script, context)
     return true unless @perform
@@ -87,6 +95,7 @@ class Inprovise::ScriptRunner
     return if is_valid?(script, context)
     raise ValidationFailureError.new(@node, script)
   end
+  private :validate!
 
   def is_valid?(script, context)
     results = exec(script, :validate, context)
@@ -94,6 +103,7 @@ class Inprovise::ScriptRunner
     context.log.command("validate -> #{rc}") if Inprovise.verbosity > 0
     rc
   end
+  private :is_valid?
 
   def exec(script, command_name, context)
     cmds = script.command(command_name)
@@ -103,6 +113,7 @@ class Inprovise::ScriptRunner
     context.script = script
     cmds.map {|cmd| context.exec(cmd) }
   end
+  private :exec
 
   class ValidationFailureError < StandardError
     def initialize(node, script)

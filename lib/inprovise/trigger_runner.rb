@@ -17,14 +17,29 @@ class Inprovise::TriggerRunner
 
   def execute(_, config=nil)
     Inprovise.log.local("Triggering #{@action_ref} for #{@node.to_s}")
-    Inprovise::ExecutionContext.new(@node, @log, @index, config).trigger(@action_ref, *@args)
+    context = Inprovise::ExecutionContext.new(@node, @log, @index, config)
+    scr, action = context.resolve_action_ref(@action_ref)
+    setup_configuration(scr, context)
+    context.trigger(scr, action, *@args)
   end
 
   def demonstrate(_, config=nil)
-    Inprovise::MockExecutionContext.new(@node, @log, @index, config).trigger(@action_ref, *@args)
+    Inprovise.log.local("Demonstrating trigger #{@action_ref} for #{@node.to_s}")
+    context = Inprovise::MockExecutionContext.new(@node, @log, @index, config)
+    scr, action = context.resolve_action_ref(@action_ref)
+    setup_configuration(scr, context)
+    context.trigger(scr, action, *@args)
   end
 
   private
+
+  def setup_configuration(script, context)
+    script.update_configuration(context)
+    context.log.set_task(script)
+    context.log.command(:configure)
+    context.script = script
+    script.command(:configure).each {|cmd| context.exec_config(cmd) }
+  end
 
   def parse_action_ref(action_ref_with_args)
     matches = action_ref_with_args.match(/([\w\-\:]+?)(\[([\w\-\,]+?)\])/)

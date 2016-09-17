@@ -7,7 +7,7 @@ require 'open3'
 
 class Inprovise::ExecutionContext
 
-  class DSL
+  class ConfigDSL
     def initialize(context)
       @context = context
     end
@@ -16,12 +16,18 @@ class Inprovise::ExecutionContext
       @context.config.send(meth, *args)
     end
 
-    def node
-      @context.node
+    def script
+      @context.script ? @context.script.name : ''
     end
 
     def config
       @context.config
+    end
+  end
+
+  class DSL < ConfigDSL
+    def node
+      @context.node
     end
 
     def as(user, &blk)
@@ -81,7 +87,7 @@ class Inprovise::ExecutionContext
     end
 
     def trigger(action_ref, *args)
-      @context.trigger(action_ref, *args)
+      @context.trigger(*@context.resolve_action_ref(action_ref), *args)
     end
 
     def binary_exists?(binary)
@@ -99,6 +105,10 @@ class Inprovise::ExecutionContext
     @config = Inprovise::Config.new(config || @node.config)
     @index = index
     @script = nil
+  end
+
+  def exec_config(blk)
+    ConfigDSL.new(self).instance_eval(&blk)
   end
 
   def exec(blk, *args)
@@ -205,16 +215,19 @@ class Inprovise::ExecutionContext
     Inprovise::Template.new(path, self)
   end
 
-  def trigger(action_ref, *args)
-    action_name, pkg_name = *action_ref.split(':', 2).reverse
-    pkg = @script
-    pkg = @index.get(pkg_name) if pkg_name
-    action = pkg.actions[action_name] if pkg
+  def resolve_action_ref(action_ref)
+    action_name, scr_name = *action_ref.split(':', 2).reverse
+    scr = @script
+    scr = @index.get(scr_name) if scr_name
+    action = scr ? scr.actions[action_name] : nil
     raise Inprovise::MissingActionError.new(action_ref) unless action
+    [scr, action]
+  end
+
+  def trigger(scr, action, *args)
     curtask = @node.log.set_task(action_ref)
     curscript = @script
-    @script = pkg
-    @script.update_configuration(self)
+    @script = scr
     begin
       exec(action, *args)
     ensure

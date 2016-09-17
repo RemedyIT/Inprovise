@@ -80,8 +80,8 @@ class Inprovise::Script
   end
 
   def update_configuration(context)
+    context.config[self.name.to_sym] ||= Inprovise::Config.new
     if @configuration
-      context.config[self.name.to_sym] ||= Inprovise::Config.new
       context.config[self.name.to_sym].update!(@configuration)
     end
   end
