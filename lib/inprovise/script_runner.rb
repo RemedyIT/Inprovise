@@ -35,9 +35,8 @@ class Inprovise::ScriptRunner
     scrs = scripts
     context = @perform ? Inprovise::ExecutionContext.new(@node, @log, @index, config) : Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     context.config.command = command_name.to_sym
-    scrs.each do |script|
-      setup_configuration(script, context)
-    end
+    scrs.each { |script| script.update_configuration(context) }
+    scrs.each { |script| setup_configuration(script, context) }
     scrs.reverse! if command_name.to_sym == :revert
     @log.say(scrs.map(&:name).join(', '), :yellow) if Inprovise.verbosity > 0
     scrs.each do |script|
@@ -52,7 +51,6 @@ class Inprovise::ScriptRunner
   end
 
   def setup_configuration(script, context)
-    script.update_configuration(context)
     context.log.set_task(script)
     context.log.command(:configure)
     context.script = script
