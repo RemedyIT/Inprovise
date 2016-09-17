@@ -217,15 +217,15 @@ class Inprovise::ExecutionContext
 
   def resolve_action_ref(action_ref)
     action_name, scr_name = *action_ref.split(':', 2).reverse
-    scr = @script
-    scr = @index.get(scr_name) if scr_name
-    action = scr ? scr.actions[action_name] : nil
-    raise Inprovise::MissingActionError.new(action_ref) unless action
-    [scr, action]
+    scr = scr_name ? @index.get(scr_name) : nil
+    [scr, action_name]
   end
 
-  def trigger(scr, action, *args)
-    curtask = @node.log.set_task(action_ref)
+  def trigger(scr, action_name, *args)
+    scr ||= @script
+    action = scr ? scr.actions[action_name] : nil
+    raise Inprovise::MissingActionError.new("#{scr ? scr.name+':' : ''}#{action_name}") unless action
+    curtask = @node.log.set_task("#{scr.name}:#{action_name}")
     curscript = @script
     @script = scr
     begin

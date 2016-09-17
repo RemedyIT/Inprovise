@@ -19,7 +19,7 @@ class Inprovise::TriggerRunner
     Inprovise.log.local("Triggering #{@action_ref} for #{@node.to_s}")
     context = Inprovise::ExecutionContext.new(@node, @log, @index, config)
     scr, action = context.resolve_action_ref(@action_ref)
-    setup_configuration(scr, context)
+    setup_configuration(scr, context) if scr
     context.trigger(scr, action, *@args)
   end
 
@@ -27,7 +27,7 @@ class Inprovise::TriggerRunner
     Inprovise.log.local("Demonstrating trigger #{@action_ref} for #{@node.to_s}")
     context = Inprovise::MockExecutionContext.new(@node, @log, @index, config)
     scr, action = context.resolve_action_ref(@action_ref)
-    setup_configuration(scr, context)
+    setup_configuration(scr, context) if scr
     context.trigger(scr, action, *@args)
   end
 
