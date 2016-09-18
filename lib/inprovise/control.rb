@@ -225,7 +225,7 @@ class Inprovise::Controller
 
   def add_group(options, grpcfg, name)
     options[:target].each {|t| raise ArgumentError, "Unknown target [#{t}]" unless Inprovise::Infrastructure.find(t) }
-    grp = Inprovise::Infrastructure::Group.new(name, grpcfg, options[:target])
+    grp = Inprovise::Infrastructure::Group.new(name, grpcfg)
 
     Inprovise.log.local("Adding #{grp}")
 
