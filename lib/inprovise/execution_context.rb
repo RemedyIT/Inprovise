@@ -20,16 +20,16 @@ class Inprovise::ExecutionContext
       @context.script ? @context.script.name : ''
     end
 
+    def node
+      @context.node
+    end
+
     def config
       @context.config
     end
   end
 
   class DSL < ConfigDSL
-    def node
-      @context.node
-    end
-
     def as(user, &blk)
       @context.as(user, &blk)
     end
