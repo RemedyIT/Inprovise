@@ -70,6 +70,11 @@ class Inprovise::Cli
                 $stdout.puts "ERROR: #{a} is not a group".red
               when Inprovise::Infrastructure::Group
                 Inprovise::Cli.show_target(tgt, options[:details])
+                if options[:details]
+                  $stdout.puts "   \t["
+                  tgt.unresolved_targets.each { |member| $stdout.puts "   \t   #{member}" }
+                  $stdout.puts "   \t]"
+                end
               else
                 $stdout.puts "ERROR: #{a} is unknown".red
             end
