@@ -61,6 +61,7 @@ class Inprovise::Cli
   end
 
   desc 'List the available scripts. By default lists only described scripts.'
+  skips_post
   command :list do |clist|
 
     clist.desc 'Path to a provisioning scheme to load'

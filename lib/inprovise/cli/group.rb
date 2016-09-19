@@ -51,6 +51,7 @@ class Inprovise::Cli
     end
 
     cgrp.desc 'List infrastructure groups (all or specified group(s))'
+    cgrp.skips_post
     cgrp.arg_name '[GROUP[ GROUP [...]]]'
     cgrp.command :list do |cgrp_list|
       cgrp_list.switch [:d, :details], negatable: false, :desc => 'Show group details'

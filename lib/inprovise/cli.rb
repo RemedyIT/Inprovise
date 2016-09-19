@@ -41,6 +41,7 @@ class Inprovise::Cli
   require_relative './cli/provision'
 
   desc 'Initialize Inprovise project.'
+  skips_post
   command :init do |cinit|
     cinit.action do |_global,_options,_args|
       raise RuntimeError, 'Cannot initialize existing project directory.' if File.exists?(Inprovise::INFRA_FILE)
@@ -79,11 +80,12 @@ class Inprovise::Cli
     true
   end
 
-  # post do |global,command,options,args|
-  #   # Post logic here
-  #   # Use skips_post before a command to skip this
-  #   # block on that command only
-  # end
+  post do |global,command,options,args|
+    # Post logic here
+    # Use skips_post before a command to skip this
+    # block on that command only
+    Inprovise::Infrastructure.save
+  end
 
   on_error do |exception|
     # Error logic here

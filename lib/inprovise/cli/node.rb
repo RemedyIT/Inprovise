@@ -56,6 +56,7 @@ class Inprovise::Cli
     end
 
     cnod.desc 'List infrastructure nodes (all or for specified nodes/groups)'
+    cnod.skips_post
     cnod.arg_name '[NAME[ NAME [...]]]'
     cnod.command :list do |cnod_list|
       cnod_list.switch [:d, :details], negatable: false, :desc => 'Show node details'

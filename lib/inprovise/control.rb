@@ -133,7 +133,6 @@ class Inprovise::Controller
 
     def run_infra_command(cmd, target, *args)
       add(Inprovise::Controller.new).send(:"#{cmd}_#{target}", *args)
-      Inprovise::Infrastructure.save
     end
 
     def run_provisioning_command(command, script, cfg, *targets)
