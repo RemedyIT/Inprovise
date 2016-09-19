@@ -5,6 +5,6 @@
 
 module Inprovise
 
-  VERSION = '0.2.15'
+  VERSION = '0.2.16'
 
 end
