@@ -58,7 +58,7 @@ module Inprovise::Infrastructure
     def save
       targets.synchronize do
         data = []
-        targets.values.sort.each {|t| t.is_a?(Node) ? data.insert(0,t) : data.push(t) }
+        targets.keys.sort.each {|t| targets[t].is_a?(Node) ? data.insert(0,targets[t]) : data.push(targets[t]) }
         File.open(Inprovise.infra, 'w') {|f| f << JSON.pretty_generate(data) }
       end
     end
