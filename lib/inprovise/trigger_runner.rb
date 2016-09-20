@@ -52,11 +52,19 @@ class Inprovise::TriggerRunner
     end
   end
 
+  def get_arg_value(v)
+    begin
+      Module.new { def self.eval(s); binding.eval(s); end }.eval(v)
+    rescue Exception
+      v
+    end
+  end
+
   def parse_action_ref(action_ref_with_args)
-    matches = action_ref_with_args.match(/([\w\-\:]+?)(\[([\w\-\,]+?)\])/)
+    matches = action_ref_with_args.match(/([\w\-\:]+?)(\[(.+?)\])/)
     return [action_ref_with_args,[]] unless matches
     action_ref = matches[1]
-    args = matches[3].split(',').map(&:strip)
+    args = matches[3].split(',').map { |arg| get_arg_value(arg.strip) }
     [action_ref, args]
   end
 end
