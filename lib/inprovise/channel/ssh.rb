@@ -15,9 +15,6 @@ Inprovise::CmdChannel.define('ssh') do
     super(node)
     @connection = nil
     @sftp = nil
-    if @node.config.has_key?(:credentials) && @node.config[:credentials].has_key?(:'public-key')
-      install_pubkey(@node.config[:credentials][:'public-key'])
-    end
   end
 
   def close
@@ -134,58 +131,6 @@ Inprovise::CmdChannel.define('ssh') do
       hsh[k] = v if k == :password || k == :passphrase
       hsh
     end
-  end
-
-  def install_pubkey(pubkey_path)
-    log_bak = @node.log
-    begin
-      @node.log_to(Inprovise::Logger.new(@node, 'ssh[init]'))
-
-      # load public key
-      pubkey = File.read(pubkey_path)
-      # quit if already installed
-      return if check_pubkey(pubkey)
-
-      begin
-        # create .ssh dir if necessary
-        unless exists?('./.ssh')
-          mkdir('./.ssh')
-          set_permissions('./.ssh', 0755)
-        end
-        @node.log.remote("SFTP.APPEND: #{pubkey_path} -> ./.ssh/authorized_keys") if Inprovise.verbosity > 0
-        sftp.file.open('./.ssh/authorized_keys', 'a') { |f| f.puts pubkey }
-        # make sure the key file has the right permissions
-        set_permissions('./.ssh/authorized_keys', 0644)
-      rescue
-        # using the SFTP option failed, let's try a more basic approach
-        run('mkdir -p .ssh')      # make sure the directory exists
-        run('chmod 0755 ./.ssh')  # and has the right permissions
-        # upload pubkey file to remote temp file
-        upload_path = "inprovise-upload-#{Digest::SHA1.file(pubkey_path).hexdigest}"
-        upload(pubkey_path, upload_path)
-        # concatenate temp file to ssh file
-        run("cat #{upload_path} >> ./.ssh/authorized_keys")
-        # remove temp file
-        run("rm #{upload_path}")
-        # make sure the key file has the right permissions
-        run('chmod 0644 ./.ssh/authorized_keys')
-      end
-    ensure
-      @node.log_to(log_bak)
-    end
-  end
-
-  def check_pubkey(pubkey)
-    # check if public key already configured
-    if exists?('./.ssh/authorized_keys')
-      auth_keys = begin
-                    content('./.ssh/authorized_keys')
-                  rescue
-                    run('cat ./.ssh/authorized_keys')
-                  end.split("\n")
-      return auth_keys.any? { |key| key == pubkey }
-    end
-    false
   end
 
   def execute(cmd, forcelog=false)

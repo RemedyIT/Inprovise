@@ -9,13 +9,6 @@ Inprovise::CmdHelper.define('cygwin', Inprovise::CmdHelper.implementations['linu
 
   def initialize(channel)
     super(channel)
-    # only if this is *NOT* a sudo helper
-    unless channel.node.user == admin_user
-      if channel.node.config.has_key?(:credentials) && channel.node.config[:credentials].has_key?(:'public-key')
-        # trigger sudo channel creation to have pubkey installed for admin as well
-        sudo
-      end
-    end
   end
 
   # platform properties
