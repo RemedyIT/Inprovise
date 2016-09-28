@@ -9,7 +9,7 @@
 #
 #   description 'description'
 #
-#   configuration <data>
+#   configuration <data> [{ }]
 #
 #   action('action1') {  }
 #   action('action2')  { }
@@ -52,7 +52,7 @@
 #
 # run_local 'command'                               execute command locally
 #
-# log 'msg'                                         log a message
+# log 'msg', color=nil                              log a message; color is symbol like :red, :blue, :yellow ...
 #
 # sudo 'command'[, {}]                              execute command on current node over SSH connection using 'sudo'
 #                                                   options: see 'run'
@@ -87,6 +87,14 @@
 # template('/local/file')                           creates a template object for the specified (ERB) template file
 #                                                   providing 2 rendering options
 #                         .render(locals ={})                 returns rendered result string
-#                         .render_to_tempfile(locals = {})    returns path of tempfile containing rendered result
+#                         .render_to_tempfile(locals = {})    returns path of local tempfile containing rendered result
+#                         .render_to(fname[, mktmp = true], locals={})
+#                                                             return remote file object referencing (temp)
+#                                                             file containing rendered result
+#                         .render_to(fname[, mktmp = true], locals={}) { |fremote| ... }
+#                                                             yields block with remote file object referencing (temp)
+#                                                             file containing rendered result
+#                                                             deletes the remote file after block finishes if it still
+#                                                             exists
 #
 

@@ -15,7 +15,30 @@ class Inprovise::Template
   end
 
   def render(locals={})
-    @template.render(@context, locals)
+    @template.render(Inprovise::ExecutionContext::DSL.new(@context), locals)
+  end
+
+  def render_to(fname, *opts, &block)
+    mktmp = opts.size > 1 ? opts.shift : true
+    locals = opts.shift || {}
+    tmpfile = @context.local(render_to_tempfile(locals))
+    fremote = nil
+    begin
+      # upload to temporary file
+      fremote = tmpfile.upload("#{File.basename(fname, '.*')}-#{tmpfile.hash}.#{File.extname(fname)}")
+      # move/rename temporary file if required
+      unless mktmp && File.dirname(fname) == '.'
+        fremote = fremote.move_to(mktmp ? File.dirname(fname) : fname)
+      end
+      if block_given?
+        @context.exec(block, fremote)
+        fremote.delete! if mktmp
+        fremote = nil
+      end
+    ensure
+      tmpfile.delete!
+    end
+    fremote
   end
 
   def render_to_tempfile(locals={})
