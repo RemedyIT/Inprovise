@@ -25,7 +25,7 @@ class Inprovise::Template
     fremote = nil
     begin
       # upload to temporary file
-      fremote = tmpfile.upload("#{File.basename(fname, '.*')}-#{tmpfile.hash}.#{File.extname(fname)}")
+      fremote = tmpfile.upload("#{File.basename(fname, '.*')}-#{tmpfile.hash}#{File.extname(fname)}")
       # move/rename temporary file if required
       unless mktmp && File.dirname(fname) == '.'
         fremote = fremote.move_to(mktmp ? File.dirname(fname) : fname)
