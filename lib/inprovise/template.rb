@@ -19,7 +19,7 @@ class Inprovise::Template
   end
 
   def render_to(fname, *opts, &block)
-    mktmp = opts.size > 1 ? opts.shift : true
+    mktmp = opts.size > 0 ? opts.shift : true
     locals = opts.shift || {}
     tmpfile = @context.local(render_to_tempfile(locals))
     fremote = nil
