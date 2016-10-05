@@ -80,6 +80,7 @@ class Inprovise::ScriptRunner
     return false unless script.provides_command?(command_name)
     return true unless @perform
     return true unless command_name == :apply || command_name == :revert
+    return true if context.config[:run_always]
     return true unless script.provides_command?(:validate)
     is_present = is_valid?(script, context)
     return !is_present if command_name == :apply

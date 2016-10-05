@@ -99,6 +99,7 @@ class Inprovise::Controller
           load_schemes(options)
           # extract config
           cfg = parse_config(options[:config])
+          cfg[:run_always] = true if options[:force]
           # get script/action
           sca = args.shift
           run_provisioning_command(command, sca, cfg, *args)

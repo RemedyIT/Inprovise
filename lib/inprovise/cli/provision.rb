@@ -5,10 +5,11 @@
 
 class Inprovise::Cli
 
-  def self.setup_provisioning_cmd(cmd, &block)
+  def self.setup_provisioning_cmd(cmd, with_force=true, &block)
     cmd.desc 'Path to a provisioning scheme to load'
     cmd.flag [:s,:scheme], :arg_name => 'FILE', :multiple => true, :default_value => Inprovise.default_scheme
     cmd.flag [:c, :config], :arg_name => 'CFGKEY=CFGVAL', :multiple => true, :desc => 'Specify a configuration setting for the script execution'
+    cmd.switch [:f, :force], negatable: false, :desc => 'Force command to run without verifying validity.' if with_force
     cmd.action(&block)
   end
 
@@ -40,7 +41,7 @@ class Inprovise::Cli
   arg_name 'SCRIPT NAME[ NAME[...]]'
   command :validate do |cvalid|
 
-    Inprovise::Cli.setup_provisioning_cmd(cvalid) do |_global, options, args|
+    Inprovise::Cli.setup_provisioning_cmd(cvalid, false) do |_global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
       Inprovise::Controller.run(:validate, options, *args)
@@ -52,7 +53,7 @@ class Inprovise::Cli
   arg_name 'ACTION NAME[ NAME[...]]'
   command :trigger do |ctrigger|
 
-    Inprovise::Cli.setup_provisioning_cmd(ctrigger) do |_global, options, args|
+    Inprovise::Cli.setup_provisioning_cmd(ctrigger, false) do |_global, options, args|
       raise ArgumentError, 'Missing arguments!' if args.empty?
       raise ArgumentError, 'Missing targets!' if args.size < 2
       Inprovise::Controller.run(:trigger, options, *args)
