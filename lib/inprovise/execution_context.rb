@@ -55,7 +55,7 @@ class Inprovise::ExecutionContext
     end
 
     def log(msg=nil, color=nil)
-      @context.log(msg)
+      @context.log(msg, color)
     end
 
     def upload(from, to)

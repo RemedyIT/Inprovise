@@ -2,8 +2,8 @@
 #
 # Author::    Martin Corino
 # License::   Distributes under the same license as Ruby
-require "codeclimate-test-reporter"
-CodeClimate::TestReporter.start
+require "simplecov"
+SimpleCov.start
 
 gem 'minitest'
 require 'minitest/autorun'
