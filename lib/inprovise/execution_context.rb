@@ -71,7 +71,7 @@ class Inprovise::ExecutionContext
     end
 
     def remove(path)
-      @context.delete(path)
+      @context.remove(path)
     end
 
     def local(path)
