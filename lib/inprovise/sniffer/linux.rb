@@ -30,7 +30,7 @@ Inprovise::Sniffer.define('linux', false) do
       binary_exists?('dnf') ? 'dnf' : 'yum'
       when 'linuxmint', 'ubuntu', 'debian'
       'apt'
-      when /suse/
+      when 'suse', 'sles'
       'zypper'
     end
   end
@@ -41,7 +41,7 @@ Inprovise::Sniffer.define('linux', false) do
         when /RedHat/i
         'rhel'
         when /SUSE/i
-        run("#{bin} -d").chomp =~ /opensuse/i ? 'opensuse' : 'suse'
+        run("#{bin} -d").chomp =~ /opensuse/i ? 'suse' : 'sles'
         else
         distro.downcase
       end
