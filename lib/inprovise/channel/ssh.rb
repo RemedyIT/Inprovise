@@ -122,7 +122,7 @@ Inprovise::CmdChannel.define('ssh') do
       :auth_methods, :compression, :compression_level, :config, :encryption , :forward_agent , :global_known_hosts_file ,
       :hmac , :host_key , :host_key_alias , :host_name, :kex , :keys , :key_data , :keys_only , :logger , :paranoid ,
       :passphrase , :password , :port , :properties , :proxy , :rekey_blocks_limit , :rekey_limit , :rekey_packet_limit ,
-      :timeout , :user , :user_known_hosts_file , :verbose ]
+      :timeout , :user , :user_known_hosts_file , :verbose, :verify_host_key ]
     ssh_cfg  = (@node.config[:ssh] || {}).reduce({}) do |hsh, (k,v)|
       hsh[k] = v if opts.include?(k)
       hsh
