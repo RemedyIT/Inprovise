@@ -30,7 +30,7 @@ Inprovise::Sniffer.define('linux', false) do
       binary_exists?('dnf') ? 'dnf' : 'yum'
       when 'linuxmint', 'ubuntu', 'debian'
       'apt'
-      when 'suse', 'sles'
+      when 'suse', 'sles', 'opensuse-leap'
       'zypper'
     end
   end
