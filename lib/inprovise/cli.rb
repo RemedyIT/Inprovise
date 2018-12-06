@@ -30,7 +30,7 @@ class Inprovise::Cli
   desc 'Show exception backtraces on exit.'
   switch [:x, :'show-backtrace'], {negatable: false}
 
-  desc 'Don\'t run tasks in parrallel across nodes.'
+  desc 'Don\'t run tasks in parallel across nodes.'
   switch [:sequential], {negatable: false}
 
   desc 'Don\'t validate and run dependencies.'
