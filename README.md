@@ -115,7 +115,7 @@ So here are some examples (assuming you have a script called "app" and a node ca
     rig revert app server
     rig validate app server
 
-If you have a script with the same name as a group or node you can abreviate this to...
+If you have a script with the same name as a group or node you can abbreviate this to...
 
     rig apply server
     rig remove server
