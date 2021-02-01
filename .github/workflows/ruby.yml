@@ -28,8 +28,7 @@ jobs:
     - name: Test with Rake
       run: bundle exec rake test
     - name: Code Climate Test Reporter
-      uses: aktions/codeclimate-test-reporter@v1
-      with:
-        codeclimate-test-reporter-id: ${{ secrets.CC_TEST_REPORTER_ID }}
-        command: after-build
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
 
