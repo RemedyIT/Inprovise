@@ -23,10 +23,10 @@ jobs:
         bundler-cache: true
     - name: Install dependencies
       run: bundle install
-    - name: Build with rake
-      run: bundle exec rake build
     - name: Test with Rake
       run: bundle exec rake test
+    - name: Build with rake
+      run: bundle exec rake build
     - name: Code Climate Test Reporter
       uses: paambaati/codeclimate-action@v2.7.5
       env:
