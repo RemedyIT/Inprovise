@@ -27,3 +27,9 @@ jobs:
       run: bundle exec rake build
     - name: Test with Rake
       run: bundle exec rake test
+    - name: Code Climate Test Reporter
+      uses: paambaati/codeclimate-action@v2.7.5
+      env:
+        CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+
+
