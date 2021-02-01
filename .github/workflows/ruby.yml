@@ -1,0 +1,29 @@
+name: ruby
+
+on:
+  push:
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '0 1 * * SUN'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        ruby-version: [ '2.4', '2.5', '2.6', '2.7', '3.0', 'ruby-head' ]
+    name: ruby ${{ matrix.ruby-version }}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{ matrix.ruby-version }}
+        bundler-cache: true
+    - name: Install dependencies
+      run: bundle install
+    - name: Build with rake
+      run: bundle exec rake build
+    - name: Test with Rake
+      run: bundle exec rake test
