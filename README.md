@@ -6,7 +6,7 @@ Inprovise
 
 Inprovise (Intuitive Provisioning Environment) is a super simple way to provision servers and virtual machines.
 
-[![Build Status](https://travis-ci.org/mcorino/Inprovise.png)](https://travis-ci.org/mcorino/Inprovise)
+[![Build Status](https://github.com/RemedyIT/Inprovise/actions/workflows/ruby.yml/badge.svg)](https://github.com/RemedyIT/Inprovise/actions/workflows/ruby.yml)
 [![Code Climate](https://codeclimate.com/github/RemedyIT/Inprovise/badges/gpa.png)](https://codeclimate.com/github/RemedyIT/Inprovise)
 [![Test Coverage](https://codeclimate.com/github/RemedyIT/Inprovise/badges/coverage.png)](https://codeclimate.com/github/RemedyIT/Inprovise/coverage)
 [![Gem Version](https://badge.fury.io/rb/inprovise.png)](https://badge.fury.io/rb/inprovise)
