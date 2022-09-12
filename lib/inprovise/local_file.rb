@@ -29,7 +29,7 @@ class Inprovise::LocalFile
   end
 
   def exists?
-    File.exists?(@path)
+    File.exist?(@path)
   end
 
   def directory?
