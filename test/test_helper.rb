@@ -7,7 +7,7 @@ SimpleCov.start
 
 gem 'minitest'
 require 'minitest/autorun'
-require 'mocha/setup'
+require 'mocha/minitest'
 require_relative '../lib/inprovise'
 
 # force root file
