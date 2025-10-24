@@ -44,15 +44,15 @@ class Inprovise::Cli
   skips_post
   command :init do |cinit|
     cinit.action do |_global,_options,_args|
-      raise RuntimeError, 'Cannot initialize existing project directory.' if File.exists?(Inprovise::INFRA_FILE)
-      raise RuntimeError, "Default scheme #{Inprovise.default_scheme} already exists." if File.exists?(Inprovise.default_scheme)
+      raise RuntimeError, 'Cannot initialize existing project directory.' if File.exist?(Inprovise::INFRA_FILE)
+      raise RuntimeError, "Default scheme #{Inprovise.default_scheme} already exists." if File.exist?(Inprovise.default_scheme)
       begin
         Inprovise::Infrastructure.init(Inprovise::INFRA_FILE)
         path = Inprovise::Template.new(File.join(File.dirname(__FILE__),'template','inprovise.rb.erb')).render_to_tempfile
         FileUtils.mv(path, Inprovise.default_scheme)
       rescue
-        File.delete(Inprovise::INFRA_FILE) if File.exists?(Inprovise::INFRA_FILE)
-        File.delete(Inprovise.default_scheme) if File.exists?(Inprovise.default_scheme)
+        File.delete(Inprovise::INFRA_FILE) if File.exist?(Inprovise::INFRA_FILE)
+        File.delete(Inprovise.default_scheme) if File.exist?(Inprovise.default_scheme)
         raise
       end
     end
