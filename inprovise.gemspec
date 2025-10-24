@@ -1,11 +1,11 @@
 require File.join(File.dirname(__FILE__), 'lib/inprovise/version')
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["Martin Corino"]
-  gem.email         = ["mcorino@remedy.nl"]
+  gem.authors       = ["Johnny Willemsen"]
+  gem.email         = ["jwillemsen@remedy.nl"]
   gem.description   = %q{InProvisE is Intuitive Provisioning Environment}
   gem.summary       = %q{Simple, easy and intuitive infrastructure provisioning}
-  gem.homepage      = "https://github.com/mcorino/Inprovise"
+  gem.homepage      = "https://github.com/RemedyIT/Inprovise"
   gem.license       = 'MIT'
 
   gem.files         = `git ls-files`.split($\)
